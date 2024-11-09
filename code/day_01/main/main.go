@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // go 语言指针的使用特点
 func testPtr(num *int) {
@@ -24,4 +27,8 @@ func printPersonalInformation(name string, sex string, age int, address string) 
 
 func main() {
 	printPersonalInformation("郭舒澜", "女", 24, "大冶一中")
+	str := "背景ababa"
+	substr := "aba"
+	fmt.Println(strings.Count(str, substr))
+	fmt.Println(strings.Index(str, substr))
 }
