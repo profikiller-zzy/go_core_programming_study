@@ -18,4 +18,28 @@ func main() {
 	}
 	fmt.Println(cap(intSlice))
 	fmt.Println(len(intSlice))
+
+	intSlice[0] = 2
+	for i := 0; i < 5; i++ {
+		fmt.Printf("%d\t", intArr[i])
+	}
+	fmt.Println()
+	for i := 0; i < len(intSlice); i++ {
+		fmt.Printf("%d\t", intSlice[i])
+	}
+	fmt.Println()
+
+	var floatArray [5]float64
+	for i, _ := range floatArray {
+		floatArray[i] = float64(i)
+	}
+	var floatSlice1 []float64 = floatArray[0:5]
+	//var floatSlice2 []float64 = make([]float64, 5, 10)
+	fmt.Printf("len floatSlice1:%d\n", len(floatSlice1))
+	fmt.Printf("cap floatSlice1:%d\n", cap(floatSlice1))
+	fmt.Printf("len floatArray:%d\n", len(floatArray))
+	floatSlice1 = append(floatSlice1, 5, 6)
+	fmt.Printf("after append: len floatSlice1:%d\n", len(floatSlice1))
+	fmt.Printf("after append: cap floatSlice1:%d\n", cap(floatSlice1))
+	fmt.Printf("after append: len floatArray:%d\n", len(floatArray))
 }

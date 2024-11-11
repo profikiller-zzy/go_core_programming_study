@@ -1722,3 +1722,220 @@ var 切片名 []类型
 画出前面的切片内存布局:
 
 ![image-20241109170835941](image\image-20241109170835941.png)
+
+在 Go 语言内部，切片的结构大致是如下这样（简化表示）：
+
+```go
+type Slice struct {
+    ptr *array // 指向底层数组的指针
+    len int    // 当前切片的长度
+    cap int    // 当前切片的容量
+}
+```
+
+```go
+func main() {
+    intArr := [5]int{1, 22, 33, 44, 55}
+	intSlice := intArr[2:4]
+	for i := 0; i < 5; i++ {
+		fmt.Printf("intArr[%d]地址:%v\n", i, &intArr[i])
+	}
+	for i := 0; i < len(intSlice); i++ {
+		fmt.Printf("intSlice[%d]地址:%v\n", i, &intSlice[i])
+	}
+	fmt.Println(cap(intSlice))
+	fmt.Println(len(intSlice))
+
+	intSlice[0] = 2
+	for i := 0; i < 5; i++ {
+		fmt.Printf("%d\t", intArr[i])
+	}
+	fmt.Println()
+	for i := 0; i < len(intSlice); i++ {
+		fmt.Printf("%d\t", intSlice[i])
+	}
+}
+/* 输出
+intArr[0]地址:0xc00000e330
+intArr[1]地址:0xc00000e338
+intArr[2]地址:0xc00000e340
+intArr[3]地址:0xc00000e348
+intArr[4]地址:0xc00000e350
+intSlice[0]地址:0xc00000e340
+intSlice[1]地址:0xc00000e348
+3
+2
+1       22      2       44      55
+2       44
+*/
+```
+
+Slice是引用类型，所以对Slice中的元素进行修改会引起其引用的底层数组的元素的修改。
+
+### 3.2 切片的引用
+
+1. 方式 1
+
+第一种方式：定义一个切片，然后让切片去引用一个已经创建好的数组：
+
+样的。
+
+2. 方式 2
+
+第二种方式：通过 **make** 来创建切片. 
+
+基本语法：**`var 切片名` `[]type = make([]type, len, [cap])`**
+
+参数说明: type: 就是数据类型 len : 大小 cap ：指定切片容量，**可选， 如果你分配了`cap`,则要求`cap>=len`.** 
+
+```go
+var floatSlice []float64 = make([]float64, 5, 10)
+```
+
+直接声明切片和使用`make`声明切片是由一些区别的
+
+**`var floatSlice []float64`**
+
+- 这是定义了一个名为 `floatSlice` 的空切片，类型为 `[]float64`。
+- 此时 `floatSlice` 为 `nil`，没有分配任何内存，也没有初始容量或长度。
+- 直接对它进行访问或操作会报错，需要先使用 `make()` 函数来分配内存。
+
+**`var floatSlice []float64 = make([]float64, 5, 10)`**
+
+- 使用 `make([]float64, 5, 10)` 创建了一个 `[]float64` 类型的切片并赋值给 `floatSlice`。
+- 该切片的**初始长度**为 `5`，**容量**为 `10`。
+- 这意味着可以直接对 `floatSlice` 的前五个元素进行访问或赋值，而不需要额外的 `make()` 操作。
+- 如果追加元素超出初始长度 `5`，但不超过容量 `10`，Go 将自动扩展其长度。
+- 一旦切片的元素数量超过容量 `10`，Go 会重新分配更大的底层数组。
+
+3. 方式 3
+
+第 3 种方式：定义一个切片，直接就指定具体数组，使用原理类似 make 的方式
+
+```go
+var strSlice []string = []string{"tom", "jack", "mary"}
+```
+
+
+
+### 3.3 切片的使用细节
+
+#### 3.3.1 切片的cap大小和切片引用的底层数组长度大小的关系
+
+- **容量与底层数组的长度关系**：切片的容量总是与它的底层数组的长度相等，或者小于底层数组的总长度。也就是说，切片容量和底层数组的容量是绑定在一起的。
+- **切片容量不足时扩展**：当通过 `append` 函数向切片添加元素时，如果切片的容量不足以容纳新的元素，Go 会为切片分配一个新的、更大的底层数组。这个新数组的大小通常是原容量的两倍（具体增长规则与实现相关）。
+
+#### 3.3.2 切片扩容的底层细节
+
+在 Go 中，当切片的长度超过其当前容量时，`append` 函数会创建一个新的底层数组来存储切片的数据，并将切片的引用指向这个新数组，而不再引用原来的数组。这种行为背后的原理和实现细节如下：
+
+1. **切片的结构**：切片在 Go 语言内部是一个结构体，包含三个字段：
+
+   - `指针`：指向底层数组的起始位置。
+   - `长度`：切片当前持有的元素数量。
+   - `容量`：从切片的起始位置到底层数组末尾的最大可用元素数量。
+
+   当 `append` 操作导致切片超出其容量时，Go 会自动创建一个新的底层数组，以容纳新增的元素。
+
+2. **扩展容量的策略**：当容量不足时，Go 会按照一定的策略来扩展容量。具体的扩展策略因实现不同有所差异，但通常来说，当切片容量较小时，Go 会选择加倍扩展；当切片容量较大时，Go 会以更小的增量扩展，以避免内存浪费。
+
+3. **生成新的底层数组**：
+
+   - 当 `append` 被调用且超出当前切片容量时，Go 会自动分配一个新的、更大的底层数组。
+   - `append` 函数会将原有切片的数据复制到新数组中，并将新增的元素追加到新数组中。
+   - `append` 返回一个指向新底层数组的切片，因此此时新的 `floatSlice1` 就不再引用原来的 `floatArray`，而是指向了新分配的数组。
+
+4. **原底层数组不变**：原来的底层数组（`floatArray`）依然保持不变，且仍然包含最初的内容，只是 `floatSlice1` 不再指向它了。这种做法是为了保持 Go 语言切片在内存管理上的安全性和效率。
+
+```go
+func main() {
+    var floatArray [5]float64
+	for i, _ := range floatArray {
+		floatArray[i] = float64(i)
+	}
+	var floatSlice1 []float64 = floatArray[0:5]
+	//var floatSlice2 []float64 = make([]float64, 5, 10)
+	fmt.Printf("len floatSlice1:%d\n", len(floatSlice1))
+	fmt.Printf("cap floatSlice1:%d\n", cap(floatSlice1))
+	fmt.Printf("len floatArray:%d\n", len(floatArray))
+	floatSlice1 = append(floatSlice1, 5, 6)
+	fmt.Printf("after append: len floatSlice1:%d\n", len(floatSlice1))
+	fmt.Printf("after append: cap floatSlice1:%d\n", cap(floatSlice1))
+	fmt.Printf("after append: len floatArray:%d\n", len(floatArray))
+}
+/* output：
+len floatSlice1:5
+cap floatSlice1:5
+len floatArray:5
+after append: len floatSlice1:7
+after append: cap floatSlice1:10
+after append: len floatArray:5
+*/
+```
+
+总结：
+
+切片 append 操作的本质就是对数组扩容;
+
+go 底层会创建一下新的数组 `newArr` (安装扩容后大小);
+
+将 slice 原来包含的元素拷贝到新的数组 `newArr`;
+
+slice 重新引用到` newArr`;
+
+注意 `newArr`是在底层来维护的，程序员不可见;
+
+关于`appand`函数的使用细节可以参考这篇文章：[一篇文章带你看懂Go append方法]https://juejin.cn/post/6951672096699187207
+
+#### 3.2.3 切片的拷贝
+
+- 浅拷贝
+
+**浅拷贝**是指复制切片的结构体信息，但不复制底层数组，因此新旧切片仍然引用同一个底层数组。
+
+1. ​	在 Go 中，可以通过直接赋值实现浅拷贝：
+
+```go
+slice1 := []int{1, 2, 3, 4, 5}
+slice2 := slice1 // 浅拷贝
+/*
+拷贝后效果：slice1 和 slice2 都引用同一个底层数组。
+修改影响：修改 slice2 的元素会影响到 slice1，因为它们引用的是同一片内存空间。
+*/
+```
+
+- 深拷贝
+
+**深拷贝**是指复制整个切片，包括底层数组，使得新旧切片拥有独立的底层数组。这样，两者之间的修改不会互相影响。
+
+1. 在 Go 中，可以使用内置的 `copy` 函数实现深拷贝：
+
+```go
+slice1 := []int{1, 2, 3, 4, 5}
+slice2 := make([]int, len(slice1)) // 创建一个新的切片，用于存放拷贝的数据
+copy(slice2, slice1) // 深拷贝
+/*
+拷贝后效果：slice1 和 slice2 拥有独立的底层数组。
+修改影响：修改 slice2 不会影响 slice1，反之亦然。
+*/
+```
+
+##### `copy` 函数的使用细节
+
+在使用 `copy` 函数进行深拷贝时，有一些需要注意的细节：
+
+- **复制的长度**：`copy` 函数会复制两个切片中较短的那个的长度。例如，如果源切片比目标切片长，`copy` 只会复制目标切片的长度。
+
+```go
+slice1 := []int{1, 2, 3, 4, 5}
+slice2 := make([]int, 3) // 长度小于 slice1
+copy(slice2, slice1) // 只会复制前 3 个元素
+
+fmt.Println("slice2:", slice2) // 输出：[1, 2, 3]
+```
+
+![image-20241111151755812](image\image-20241111151755812.png)
+
+
+
+# 六、map
