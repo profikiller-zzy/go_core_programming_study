@@ -1,2 +1,2 @@
-github.com/golang-china/gopl-zh v0.0.0-20220825015141-3b9ad7670d28 h1:8r+IuPSf629ZWnib9E75sWwG+h6+AKzin/H0q6EPRbw=
-github.com/golang-china/gopl-zh v0.0.0-20220825015141-3b9ad7670d28/go.mod h1:/N3cfr3tfPSmZVytylEARmrdUlBBJpuMop/HAd8E7EI=
+golang.org/x/net v0.31.0 h1:68CPQngjLL0r2AlUKiSxtQFKvzRVbnzLwMUn5SzcLHo=
+golang.org/x/net v0.31.0/go.mod h1:P4fl1q7dY2hnZFxEk4pPSkDHF+QqjitcnDjUQyMM+pM=
