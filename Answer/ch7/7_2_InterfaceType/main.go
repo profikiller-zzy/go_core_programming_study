@@ -42,27 +42,30 @@ type Reader struct {
 	n     int // 被限制读取的字节数，一旦读取到n个字节则返回EOF
 }
 
-func (r *Reader) Read(p []byte) (n int, err error) {
+// Read 实现这个被限制的Reader
+func (r *Reader) Read(buf []byte) (n int, err error) {
 	// 如果已经读了n个字节，则直接返回EOF
 	if r.index >= r.n {
 		return 0, io.EOF
 	}
-	// 剩下的长度不够装满所有的
-	if r.n-r.index < len(p) {
-		n, err = r.read.Read(p[:r.n-r.index])
-		err = io.EOF
-		return
-	} else { // 剩下的长度够装满所有的字节
-		// 通过嵌套读取另一个流
-		n, err = r.read.Read(p)
-		// 另一个流读到尾部了
-		if err != nil {
-			return
-		}
-		// 修改索引
-		r.index += n
-		return
+	// 计算可以读取的字节数
+	remaining := r.n - r.index
+	if len(buf) > remaining {
+		buf = buf[:remaining] // 缓冲区大小限制为剩余可读字节数
 	}
+
+	// 从嵌套的 reader 中读取数据
+	n, err = r.read.Read(buf)
+
+	// 更新读取的字节数索引
+	r.index += n
+
+	// 如果读取到数据但到达了限制，返回 io.EOF
+	if r.index >= r.n {
+		err = io.EOF
+	}
+
+	return n, err
 }
 
 // LimitReader 获取一个限制只能读取N个字节的io.Reader

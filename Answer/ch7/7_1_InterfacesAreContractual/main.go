@@ -71,7 +71,7 @@ func (t *tree) String() string {
 		return ""
 	}
 	var values []int
-	values = appendValues(t, values)
+	values = appendValues(t, values) // 获取数节点值的中序序列
 
 	var buf bytes.Buffer
 	for i, v := range values {
