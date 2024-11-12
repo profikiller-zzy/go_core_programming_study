@@ -700,21 +700,13 @@ func main() {
 
 1. 传入一个数+1
 
-![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/c2892132-f556-4b19-9f1d-9a2554cd25ec/a31a342a-4489-48ed-9d0c-734aa1527e47/image.png)
-
 对上图说明 (1) 在调用一个函数时，会给该函数分配一个新的空间，编译器会通过自身的处理让这个新的空间 和其它的栈的空间区分开来
 
-(2) 在每个函数对应的栈中，数据空间是独立的，不会混淆 (3) 当一个函数调用完毕(执行完毕)后，程序会销毁这个函数对应的栈空间。 2. 计算两个数,并返回：
-
-![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/c2892132-f556-4b19-9f1d-9a2554cd25ec/c0ec86da-46da-4cad-9969-922644381d6b/image.png)
+(2) 在每个函数对应的栈中，数据空间是独立的，不会混淆 (3) 当一个函数调用完毕(执行完毕)后，程序会销毁这个函数对应的栈空间。 2. 计算两个数,并返回
 
 ### 1.1 函数递归
 
-![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/c2892132-f556-4b19-9f1d-9a2554cd25ec/ed5562aa-86bc-40dc-862f-f08dc521e4f0/image.png)
-
 对上面代码分析的示意图：
-
-![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/c2892132-f556-4b19-9f1d-9a2554cd25ec/eade0c21-11b6-4ae7-9ba1-a2919538240d/image.png)
 
 **函数递归需要遵守的重要原则**:
 
@@ -1939,3 +1931,885 @@ fmt.Println("slice2:", slice2) // 输出：[1, 2, 3]
 
 
 # 六、map
+
+## 1. 有序遍历 map
+
+在 Go 中，`map` 是无序的，因此无法直接保证遍历的顺序。但是，可以通过将 `map` 中的键排序后，再按排序后的顺序遍历 `map`，从而实现有序遍历。以下是具体实现方法。
+
+1. **提取键**：将 `map` 中的所有键提取出来，并存储到一个切片中。
+2. **排序键**：对键的切片进行排序。可以使用标准库中的 `sort` 包来排序。
+3. **按排序后的键遍历 `map`**：根据排序后的键顺序，按顺序访问 `map` 中的值。
+
+假设我们有一个 `map[string]int`，并希望按键的字母顺序进行遍历：
+
+```go
+package main
+
+import (
+    "fmt"
+    "sort"
+)
+
+func main() {
+    // 示例 map
+    scores := map[string]int{
+        "Alice": 90,
+        "Bob":   85,
+        "Charlie": 92,
+        "David":  88,
+    }
+
+    // 1. 提取键
+    keys := make([]string, 0, len(scores))
+    for k := range scores {
+        keys = append(keys, k)
+    }
+
+    // 2. 对键排序
+    sort.Strings(keys)
+
+    // 3. 按排序后的键遍历 map
+    for _, k := range keys {
+        fmt.Printf("%s: %d\n", k, scores[k])
+    }
+}
+```
+
+```
+Alice: 90
+Bob: 85
+Charlie: 92
+David: 88
+```
+
+## 2. map 使用细节
+
+1. map 是引用类型，遵守引用类型传递的机制，在一个函数接收 map，修改后，会直接修改原本的 map：
+
+![image-20241111171108167](C:\Users\hasee\GolandProjects\go_core_programming\md\image-20241111171108167.png)
+
+2. map 的容量达到后，再想 map 增加元素，会自动扩容，并不会发生 panic，也就是说 map 能动态的增长键值对(key-value)
+
+# 七、 GO中的面向对象
+
+## 1. `golang` 中面向对象简介
+
+1.  `Golang` 也支持面向对象编程(`OOP`)，但是和传统的面向对象编程有区别，并不是纯粹的面向对象语言。所以我们说 `Golang` **支持面向对象编程特性**是比较准确的。
+
+2. `Golang` 没有类(class)，Go 语言的结构体(`struct`)和其它编程语言的类(class)有同等的地位，你可以理解 `Golang` 是基于 `struct` 来实现 `OOP` 特性的。
+
+3.  `Golang` 面向对象编程非常简洁，去掉了传统 `OOP` 语言的继承、方法重载、构造函数和析构函数、隐藏的 this 指针等等。
+4. `Golang` 仍然有面向对象编程的**继承，封装和多态**的特性，只是实现的方式和其它 `OOP` 语言不一样，比如继承 ：`Golang` 没有 `extends` 关键字，继承是通过匿名字段来实现。
+5. `Golang` 面向对象(`OOP`)很优雅，`OOP` 本身就是语言类型系统(type system)的一部分，通过接口(`interface`)关联，耦合性低，也非常灵活。后面同学们会充分体会到这个特点。也就是说在 `Golang` 中面向接口编程是非常重要的特性。
+
+## 2. 结构体
+
+### 7.2.1 结构体使用的一些注意事项
+
+1. 结构体进行 type 重新定义(相当于取别名)，`Golang` 认为是新的数据类型，**但是相互间可以强转**:
+
+```go
+type Student struct {
+    Name string
+    Age  int
+}
+
+type Stu Student
+
+func main() {
+    var stu1 Student
+    var stu2 Stu
+    stu2 = stu1 // 错误吗？错误，可以这样修改 stu2 = Stu(stu1) // ok
+    fmt.Println(stu1, stu2)
+}
+```
+
+尽管 `Stu` 的结构与 `Student` 相同，但 Go 语言不会将 `Stu` 和 `Student` 视为相同类型，因此不能直接将 `stu1` 赋值给 `stu2`。
+
+
+
+2. `struct` 的每个字段上，可以写上一个 **tag**, 该 **tag** 可以通过反射机制获取，常见的使用场景就是**序列化和反序列化**:
+
+- 首先，什么是 `struct` 字段的 tag？
+
+在 Go 结构体的字段声明后，可以写上一段反引号包裹的字符串，这就是 **tag**。`tag` 通常以 `key:"value"` 的形式表示，可以包含多个键值对。
+
+```go
+type Person struct {
+    Name string `json:"name" xml:"name"`
+    Age  int    `json:"age" xml:"age"`
+}
+```
+
+在这个结构体 `Person` 中，字段 `Name` 和 `Age` 都有 `tag`。例如，`Name` 字段的 tag 是 `json:"name" xml:"name"`，表示在 `JSON` 序列化时将字段 `Name` 映射为 `"name"`，在 XML 序列化时同样映射为 `"name"`。
+
+- `tag` 的作用：序列化和反序列化:
+
+**序列化**是将数据结构（如结构体）转换为特定格式的字符串（如 JSON、XML），而**反序列化**是将格式化的字符串转换回数据结构。`tag` 为 Go 提供了灵活的字段映射方式，可以在序列化和反序列化时指定特定的字段名。
+
+例如，Go 中的 `encoding/json` 包会根据 `tag` 中的 `json:"name"` 来决定 JSON 字段的名称，而不是直接使用 Go 结构体字段的名称。这对控制输出格式、字段重命名以及数据转换非常有用。
+
+```GO
+package main
+
+import (
+    "encoding/json"
+    "fmt"
+)
+
+type Person struct {
+    Name string `json:"name"`
+    Age  int    `json:"age"`
+}
+
+func main() {
+    p := Person{Name: "Alice", Age: 30}
+
+    // 序列化为 JSON
+    jsonData, _ := json.Marshal(p)
+    fmt.Println(string(jsonData)) // 输出：{"name":"Alice","age":30}
+
+    // 反序列化 JSON
+    var p2 Person
+    json.Unmarshal(jsonData, &p2)
+    fmt.Println(p2) // 输出：{Alice 30}
+}
+```
+
+在这个例子中，`json:"name"` 和 `json:"age"` 告诉 `json.Marshal` 和 `json.Unmarshal` 在 JSON 中使用 `"name"` 和 `"age"` 作为字段名，而不是 `Name` 和 `Age`。这对于 JSON 的格式化和字段控制非常有帮助。
+
+- 使用反射获取 `tag`:
+
+```GO
+package main
+
+import (
+    "fmt"
+    "reflect"
+)
+
+type Person struct {
+    Name string `json:"name" xml:"name"`
+    Age  int    `json:"age" xml:"age"`
+}
+
+func main() {
+    p := Person{Name: "Alice", Age: 30}
+
+    t := reflect.TypeOf(p)
+    for i := 0; i < t.NumField(); i++ {
+        field := t.Field(i)
+        fmt.Printf("Field: %s, JSON tag: %s, XML tag: %s\n", 
+                   field.Name, 
+                   field.Tag.Get("json"), 
+                   field.Tag.Get("xml"))
+    }
+}
+```
+
+```
+Field: Name, JSON tag: name, XML tag: name
+Field: Age, JSON tag: age, XML tag: age
+```
+
+## 3. 方法
+
+在某些情况下，我们要需要声明(定义)方法。比如 Person 结构体:除了有一些字段外( 年龄，姓名..),`Person` 结构体还有一些行为比如:可以说话、跑步..,通过学习，还可以做算术题。这时就要用方法才能完成。
+
+`Golang` 中的方法是**作用在指定的数据类型上的**(即：和指定的数据类型绑定)，因此**自定义类型都可以有方法**，而不仅仅是 **`struct`**。
+
+### 7.3.1 方法的声明和调用
+
+在 Go 中，方法的声明与函数类似，但有一个额外的接收者参数。接收者参数在 `func` 关键字和方法名称之间，用于指定方法所属的类型。方法声明的一般格式如下：
+
+```go
+func (receiver Type) MethodName(parameters) returnType {
+    // 方法体
+}
+```
+
+```
+receiver：接收者，用于指定方法的所属类型。接收者类型可以是值类型或指针类型。
+MethodName：方法的名称。
+parameters：方法的参数列表。
+returnType：方法的返回类型，可以有多个返回值。
+```
+
+#### 值类型接收者的方法
+
+使用值类型作为接收者时，方法只能作用于该类型的副本，而**不会修改原始值**。
+
+```go
+package main
+
+import "fmt"
+
+type Person struct {
+    Name string
+    Age  int
+}
+
+// 值接收者的方法
+func (p Person) Greet() {
+    fmt.Printf("Hello, my name is %s and I am %d years old.\n", p.Name, p.Age)
+}
+```
+
+#### 指针类型接收者的方法
+
+使用指针类型作为接收者时，方法可以直接修改原始值，因为指针传递的是原始值的地址。
+
+```go
+package main
+
+import "fmt"
+
+type Person struct {
+    Name string
+    Age  int
+}
+
+// 指针接收者的方法
+// UpdateAge 方法的接收者是 *Person（指针类型），因此可以修改 Person 的原始值。
+func (p *Person) UpdateAge(newAge int) {
+    p.Age = newAge
+}
+```
+
+#### 方法与函数的区别
+
+1. 调用方式不一样：
+
+   - **函数**：函数是独立的，可以接受任何类型的参数。
+
+   - **方法**：方法是特定类型的函数，通过接收者关联到特定类型上。
+
+
+2. 对于普通函数，接收者为值类型时，不能将指针类型的数据直接传递，反之亦然；但是对于方法（如 `struct` 的方法），接收者为值类型时，可以直接用指针类型的变量调用方法，反过来同样也可以:
+
+也就是说方法的调用对比函数的灵活性更强：
+
+- **当接收者是值类型时**，可以使用指针类型的变量调用该方法，Go 会自动解引用指针，将其转换为值类型。
+
+- **当接收者是指针类型时**，可以使用值类型的变量调用该方法，Go 会自动取该值的地址，将其转换为指针类型。
+
+### 7.3.2 方法的调用和传参机制
+
+方法的调用和传参机制和函数基本一样，不一样的地方是方法调用时，**会将调用方法的变量作为接收者（receiver）传递给方法**，即该变量会自动成为方法的一个隐式参数。下面我们举例说明：
+
+```go
+package main
+
+import "fmt"
+
+// 定义结构体类型 Person
+type Person struct {
+    Name string
+    Age  int
+}
+
+// 定义方法 Greet，接收者是 Person
+func (p Person) Greet() {
+    fmt.Printf("Hello, my name is %s and I am %d years old.\n", p.Name, p.Age)
+}
+
+func main() {
+    // 创建 Person 类型的实例
+    person := Person{Name: "Alice", Age: 25}
+
+    // 调用方法
+    person.Greet()
+}
+```
+
+```tex
+接收者参数：在方法 Greet 中，p 是 Person 类型的接收者，这相当于一个特殊的参数。
+隐式传递调用者：在 main 函数中，当我们调用 person.Greet() 时，Go 会自动将变量 person 作为实参传递给方法 Greet 的接收者 p。
+访问接收者属性：在方法内部，可以通过 p.Name 和 p.Age 来访问 person 的字段。
+```
+
+#### 7.3.3 方法使用的注意事项
+
+如果一个类型实现了 `String()` 方法，那么在使用 `fmt.Println`、`fmt.Printf` 或其他 `fmt` 包的打印函数时，会自动调用该类型的 `String()` 方法来获取其字符串表示形式。这是因为 `fmt` 包会检查该类型是否实现了 `Stringer` 接口：
+
+```go
+// Stringer 接口定义
+type Stringer interface {
+    String() string
+}
+```
+
+```go
+package main
+
+import (
+    "fmt"
+)
+
+type Person struct {
+    Name string
+    Age  int
+}
+
+// 实现 String 方法
+func (p Person) String() string {
+    return fmt.Sprintf("Person{Name: %s, Age: %d}", p.Name, p.Age)
+}
+
+func main() {
+    p := Person{Name: "Alice", Age: 30}
+
+    // fmt.Println 会调用 String 方法
+    fmt.Println(p) // 输出：Person{Name: Alice, Age: 30}
+
+    // println 不会调用 String 方法
+    println(p) // 输出的格式不确定，通常是结构体字段的默认值
+}
+```
+
+### 3. 面向对象部分中的工厂模式
+
+在 Go 语言中，尽管没有传统的面向对象机制（如继承），并且`Golang`的结构体中没有构造函数，但是我们仍然可以实现一些面向对象的设计模式，比如工厂模式。**工厂模式**是一种创建对象的设计模式，它可以根据不同的需求创建并返回对象，而不直接暴露对象的创建细节。
+
+```go
+package model
+
+type student struct {
+	Name  string
+	grade float64 // 假设学生的分数不对外导出
+}
+
+func (s student) getScore() float64 {
+	return s.grade
+}
+
+func NewStudent(name string, grade float64) *student {
+	return &student{
+		Name:  name,
+		grade: grade,
+	}
+}
+```
+
+# 八、 面向对象编程思想
+
+
+
+## 1. 面向对象编程思想-抽象
+
+抽象的介绍：我们在前面去定义一个结构体时候，实际上就是把一类事物的共有的**属性**(字段)和**行为**(方法)提取出来，形成一个**物理模型**(结构体)。这种研究问题的方法称为抽象。
+
+举例说明：
+
+![image-20241112160510145](image\image-20241112160510145.png)
+
+```go
+package main
+
+import (
+	"fmt"
+)
+
+// Account 定义一个结构体
+type Account struct {
+	AccountNo string  // 账户号
+	Pwd       string  // 密码
+	Balance   float64 // 余额
+}
+
+// Deposit 1. 存款
+func (account *Account) Deposit(money float64, pwd string) {
+	//看下输入的密码是否正确
+	if pwd != account.Pwd {
+		fmt.Println("你输入的密码不正确")
+		return
+	}
+	//看看存款金额是否正确
+	if money <= 0 {
+		fmt.Println("你输入的金额不正确")
+		return
+	}
+
+	account.Balance += money
+	fmt.Println("存款成功~~")
+}
+
+// WithDraw 2.取款
+func (account *Account) WithDraw(money float64, pwd string) {
+	//看下输入的密码是否正确
+	if pwd != account.Pwd {
+		fmt.Println("你输入的密码不正确")
+		return
+	}
+	//看看取款金额是否正确
+	if money <= 0 || money > account.Balance {
+		fmt.Println("你输入的金额不正确")
+		return
+	}
+	account.Balance -= money
+	fmt.Println("取款成功~~")
+}
+
+// Query 3.查询余额
+func (account *Account) Query(pwd string) {
+	//看下输入的密码是否正确
+	if pwd != account.Pwd {
+		fmt.Println("你输入的密码不正确")
+		return
+	}
+	fmt.Printf("你的账号为=%v 余额=%v \n", account.AccountNo, account.Balance)
+}
+
+func main() {
+	// 测试一把
+	account := Account{
+		AccountNo: "gs1111111",
+		Pwd:       "666666",
+		Balance:   100.0}
+	// 这里可以做得更加灵活，就是让用户通过控制台来输入命令... //菜单.... account.Query("666666")
+	account.Deposit(200.0, "666666")
+	account.Query("666666")
+	account.WithDraw(150.0, "666666")
+	account.Query("666666")
+}
+```
+
+## 2. 面向对象编程三大特性-封装
+
+### 8.2.1 基本介绍
+
+`Golang` 仍然有面向对象编程的继承，封装和多态的特性，只是实现的方式和其它 `OOP` 语言不一样，下面我们一一为同学们进行详细的讲解 `Golang` 的三大特性是如何实现的。
+
+### 8.2.2 封装
+
+在 Go 语言中，封装（Encapsulation）并不像传统面向对象编程（如 Java 或 C++）中那样直接支持 `class` 或 `access modifiers`（如 `private`, `public`）来控制数据和方法的可见性和访问级别。
+
+封装可以**隐藏实现细节**；并且可以提可以对**数据进行验证**，保证安全合理(Age)
+
+### 8.2.2 封装的实例
+
+1. 结构体字段私有化
+
+`accountNo`、`pwd` 和 `balance` 字段都使用了小写字母开头。通过将 `account` 结构体中的所有字段设为私有，外部包和函数无法直接读取或更改这些字段，从而保护了账户信息的完整性和安全性。
+
+2. 提供公开的构造函数来创建对象
+
+提供了一个**工厂函数** `NewAccount`，用来创建 `account` 对象，而不是让外部代码直接创建。这样做的好处是可以在对象创建时，对传入的参数进行合法性检查（如账号长度、密码长度、初始余额等），避免了不合规数据的出现。
+
+```go
+package account
+
+import (
+	"fmt"
+)
+
+// account 定义一个结构体
+type account struct {
+	accountNo string  // 账户号
+	pwd       string  // 密码
+	balance   float64 // 余额
+}
+
+// NewAccount 工厂模式的函数-构造函数
+func NewAccount(accountNo string, pwd string, balance float64) *account {
+	if len(accountNo) < 6 || len(accountNo) > 10 {
+		fmt.Println("账号的长度不对...")
+		return nil
+	}
+	if len(pwd) != 6 {
+		fmt.Println("密码的长度不对...")
+		return nil
+	}
+	if balance < 20 {
+		fmt.Println("余额数目不对...")
+		return nil
+	}
+	return &account{
+		accountNo: accountNo,
+		pwd:       pwd,
+		balance:   balance}
+}
+
+// Deposit 1. 存款
+func (account *account) Deposit(money float64, pwd string) {
+	//看下输入的密码是否正确
+	if pwd != account.pwd {
+		fmt.Println("你输入的密码不正确")
+		return
+	}
+	//看看存款金额是否正确
+	if money <= 0 {
+		fmt.Println("你输入的金额不正确")
+		return
+	}
+
+	account.balance += money
+	fmt.Println("存款成功~~")
+}
+
+// WithDraw 2.取款
+func (account *account) WithDraw(money float64, pwd string) {
+	//看下输入的密码是否正确
+	if pwd != account.pwd {
+		fmt.Println("你输入的密码不正确")
+		return
+	}
+	//看看取款金额是否正确
+	if money <= 0 || money > account.balance {
+		fmt.Println("你输入的金额不正确")
+		return
+	}
+	account.balance -= money
+	fmt.Println("取款成功~~")
+}
+
+// Query 3.查询余额
+func (account *account) Query(pwd string) {
+	//看下输入的密码是否正确
+	if pwd != account.pwd {
+		fmt.Println("你输入的密码不正确")
+		return
+	}
+	fmt.Printf("你的账号为=%v 余额=%v \n", account.accountNo, account.balance)
+}
+```
+
+```go
+package main
+
+import (
+	"fmt"
+	"go_core_programming/code/chapter_8/account/account"
+)
+
+func main() {
+	//创建一个 account 变量
+	account := account.NewAccount("jzh11111", "123456", 40)
+	if account != nil {
+		fmt.Println("创建成功=", *account)
+	} else {
+		fmt.Println("创建失败")
+	}
+}
+```
+
+## 3. 面向对象编程三大特性-继承
+
+```go
+package main
+
+import "fmt"
+
+// 编写一个学生考试系统
+
+// Pupil 小学生
+type Pupil struct {
+	Name  string
+	Age   int
+	Score int
+}
+
+// ShowInfo 显示他的成绩
+func (p *Pupil) ShowInfo() {
+	fmt.Printf("学生名=%v 年龄=%v 成绩=%v\n", p.Name, p.Age, p.Score)
+}
+
+func (p *Pupil) SetScore(score int) {
+	//业务判断
+	p.Score = score
+}
+
+func (p *Pupil) testing() {
+	fmt.Println("小学生正在考试中.....")
+}
+
+// 大学生, 研究生。。
+
+// Graduate 大学生
+type Graduate struct {
+	Name  string
+	Age   int
+	Score int
+}
+
+// ShowInfo 显示他的成绩
+func (p *Graduate) ShowInfo() {
+	fmt.Printf("学生名=%v 年龄=%v 成绩=%v\n", p.Name, p.Age, p.Score)
+}
+func (p *Graduate) SetScore(score int) {
+	//业务判断
+	p.Score = score
+}
+func (p *Graduate) testing() {
+	fmt.Println("大学生正在考试中.....")
+}
+
+func main() {
+	//测试
+	var pupil = &Pupil{
+		Name: "tom",
+		Age:  10}
+	pupil.testing()
+	pupil.SetScore(90)
+	pupil.ShowInfo()
+	//测试
+	var graduate = &Graduate{
+		Name: "mary",
+		Age:  20}
+	graduate.testing()
+	graduate.SetScore(90)
+	graduate.ShowInfo()
+}
+```
+
+对上面代码的小结
+
+1) Pupil 和 Graduate 两个结构体的字段和方法几乎，但是我们却写了相同的代码， 代码复用性不
+
+强
+
+2) 出现代码冗余，而且代码**不利于维护**，同时**也不利于功能的扩展**。
+
+3) 解决方法-通过**继承**方式来解决。
+
+### 8.3.1 Go 语言的继承：结构体嵌入
+
+Go 中使用结构体的嵌入可以实现类似继承的效果。一个结构体可以嵌入另一个结构体，嵌入的结构体的字段和方法会被“继承”下来，成为外部结构体的一部分。这种方式提供了一种灵活的代码复用和对象行为扩展机制。
+
+```go
+package main
+
+import "fmt"
+
+// 编写一个学生考试系统
+
+// Student 学生共有属性
+type Student struct {
+	Name  string
+	Age   int
+	Score int
+}
+
+// ShowInfo 显示学生的成绩
+func (s *Student) ShowInfo() {
+	fmt.Printf("学生名=%v 年龄=%v 成绩=%v\n", s.Name, s.Age, s.Score)
+}
+
+func (s *Student) SetScore(score int) {
+	//业务判断
+	s.Score = score
+}
+
+// Pupil 小学生
+type Pupil struct {
+	Student //嵌入了 Student 匿名结构体
+}
+
+func (p *Pupil) testing() {
+	fmt.Println("小学生正在考试中.....")
+}
+
+// Graduate 大学生, 研究生。。
+type Graduate struct {
+	Student //嵌入了 Student 匿名结构体
+}
+
+func (p *Graduate) testing() {
+	fmt.Println("大学生正在考试中.....")
+}
+
+func main() {
+	//当我们对结构体嵌入了匿名结构体使用方法会发生变化
+	pupil := &Pupil{}
+	pupil.Student.Name = "tom~"
+	pupil.Student.Age = 8
+	pupil.testing()
+	pupil.Student.SetScore(70)
+	pupil.Student.ShowInfo()
+
+	graduate := &Graduate{}
+	graduate.Student.Name = "mary~"
+	graduate.Student.Age = 28
+	graduate.testing()
+	graduate.Student.SetScore(90)
+	graduate.Student.ShowInfo()
+}
+```
+
+Go 中没有直接的继承机制，但通过嵌入实现了类似继承的效果。`Pupil` 和 `Graduate` 通过嵌入 `Student`，获得了 `Student` 的所有属性和方法，并且还可以定义自己的方法 `testing`，达到继承和扩展的目的。
+
+如果 `Student`接着定义了一个方法，则`Pupil` 和 `Graduate`都可以调用，同时`Pupil` 和 `Graduate` 结构体可以在 `Student` 基础上扩展自己的方法，而无需重新定义已有的功能。
+
+### 8.3.2 继承的深入讨论
+
+1.  结构体可以**使用嵌套匿名结构体所有的字段和方法**，即：首字母大写或者小写的字段、方法，都可以使用。
+2. 匿名结构体字段访问可以简化。比如说 8.3.1中`mian`函数的语句可以等价于以下代码：
+
+```
+pupil.Name = "Tom"   // 等价于 pupil.Student.Name
+```
+
+**当我们直接通过** **`pupil`** **访问字段或方法时，其执行流程如下**：
+
+-  编译器会先看 `pupil` 对应的类型有没有 `Name`, 如果有，则直接调用 `Pupil` 类型的 `Name` 字段
+
+-  如果没有就去看 `Pupil`  中嵌入的匿名结构体 `Student` 有没有声明 `Name` 字段，如果有就调用,如果没有则继续递归查找.如果都找不到就报错。
+
+3. 当**结构体**和**匿名结构体**有相同的字段或者方法时，**编译器采用就近访问原则访问**，如希望访问匿名结构体的字段和方法，可以通过匿名结构体名来区分：
+
+```go
+// Student 学生共有属性
+type Student struct {
+	Name  string
+	Age   int
+	Score int
+}
+
+// Pupil 小学生
+type Pupil struct {
+	Student //嵌入了 Student 匿名结构体
+	Name    string
+}
+
+func main() {
+    //当我们对结构体嵌入了匿名结构体使用方法会发生变化
+	pupil := &Pupil{}
+	pupil.Student.Name = "tom~"
+    pupil.Name = "jack"
+    fmt.Println(pupil.Name)
+	fmt.Println(pupil.Student.Name)
+}
+```
+
+```
+jack
+tom~
+```
+
+4. 结构体嵌入两个(或多个)匿名结构体，如**两个匿名结构体有相同的字段和方法**(**同时结构体本身没有同名的字段和方法**)，在访问时，就必须明确指定匿名结构体名字，否则编译报错。
+
+5. 如果一个 `struct` 嵌套了一个有名结构体，这种模式就是**组合**，如果是组合关系，那么**在访问组合**
+
+   **的结构体的字段或方法时，必须带上结构体的名字**。
+
+```go
+package main
+
+import "fmt"
+
+// 基础结构体 Student
+type Student struct {
+	Name  string
+	Score int
+}
+
+// Student 的方法 ShowInfo
+func (s *Student) ShowInfo() {
+	fmt.Printf("Student Name: %v, Score: %v\n", s.Name, s.Score)
+}
+
+// 外层结构体 Pupil，包含组合关系
+type Pupil struct {
+	StudentInfo Student // 使用有名字段 StudentInfo 表示组合关系
+	Level       int
+}
+
+func main() {
+	// 创建 Pupil 实例
+	pupil := Pupil{
+		StudentInfo: Student{Name: "Tom", Score: 85},
+		Level:       3,
+	}
+
+	// 访问组合结构体的字段和方法时，必须使用字段名称
+	fmt.Println("Pupil Name:", pupil.StudentInfo.Name) // 访问 Student 的 Name 字段
+	fmt.Println("Pupil Score:", pupil.StudentInfo.Score) // 访问 Student 的 Score 字段
+
+	// 调用组合结构体的方法时，也必须使用字段名称
+	pupil.StudentInfo.ShowInfo() // 调用 Student 的 ShowInfo 方法
+
+	// 访问 Pupil 自己的字段
+	fmt.Println("Pupil Level:", pupil.Level)
+}
+```
+
+```
+Pupil Name: Tom
+Pupil Score: 85
+Student Name: Tom, Score: 85
+Pupil Level: 3
+```
+
+## 4. 接口
+
+在`golang`中，多态主要是通过接口(`interface`)实现的。接口类型是一种抽象的类型。它不会暴露出它所代表的对象的内部值的结构和这个对象支持的基础操作的集合；它们只会表现出它们自己的方法。也就是说当你有看到一个接口类型的值时，你不知道它是什么，唯一知道的就是可以通过它的方法来做什么。
+
+示例：不管是什么类型，也可以是自定义的类型，只要满足满足了这个接口定义的所有方法，那么就可以说这个类型是这个接口，如下我们可以说`*ByteCounter`满足了接口`io.Writer`：
+
+```go
+package main
+
+import "fmt"
+
+type ByteCounter int
+
+func (c *ByteCounter) Write(p []byte) (int, error) {
+	*c += ByteCounter(len(p)) // convert int to ByteCounter
+	return len(p), nil
+}
+
+func main() {
+	var c ByteCounter
+	c.Write([]byte("hello"))
+	fmt.Println(c) // 5
+	c = 0
+	var name = "Dolly"
+	fmt.Fprintf(&c, "hello, %s", name)
+	fmt.Println(c) // 12, = len("hello, Dolly")
+}
+```
+
+`fmt`中这几个函数的定义如下：
+
+```go
+package fmt
+
+func Fprintf(w io.Writer, format string, args ...interface{}) (int, error)
+func Printf(format string, args ...interface{}) (int, error) {
+    return Fprintf(os.Stdout, format, args...)
+}
+func Sprintf(format string, args ...interface{}) string {
+    var buf bytes.Buffer
+    Fprintf(&buf, format, args...)
+    return buf.String()
+}
+```
+
+其中接口`io.Writer`的定义如下
+
+```go
+package io
+
+// Writer is the interface that wraps the basic Write method.
+type Writer interface {
+    // Write writes len(p) bytes from p to the underlying data stream.
+    // It returns the number of bytes written from p (0 <= n <= len(p))
+    // and any error encountered that caused the write to stop early.
+    // Write must return a non-nil error if it returns n < len(p).
+    // Write must not modify the slice data, even temporarily.
+    //
+    // Implementations must not retain p.
+    Write(p []byte) (n int, err error)
+}
+```
+
+因为`*ByteCounter`满足`io.Writer`接口，所以可以把它传入`Fprintf`函数中；`Fprintf`函数执行字符串格式化的过程不会去关注`*ByteCounter`具体是如何实现这个接口的，这样体现了**多态同时又具有高内聚和低耦合**的特性。
+
+### 8.4.1 接口的注意事项
+
+1. 在 `Golang` 中，一个自定义类型需要将某个接口的所有方法都实现，我们说这个自定义类型实现了该接口，才能将该自定义类型的实例(变量)赋给这个接口类型。
+
+2. 一个接口(比如 A 接口)可以继承多个别的接口(比如 B,C 接口)，这时如果要实现 A 接口，也必须将 B,C 接口的方法也全部实现。这里说的其实是**接口组合**：
+
+
+
