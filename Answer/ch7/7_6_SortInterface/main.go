@@ -1,5 +1,10 @@
 package main
 
+import (
+	"fmt"
+	"sort"
+)
+
 // 练习 7.8： 很多图形界面提供了一个有状态的多重排序表格插件：
 // 主要的排序键是最近一次点击过列头的列，第二个排序键是第二最近点击过列头的列，等等。
 // 定义一个sort.Interface的实现用在这样的表格中。比较这个实现方式和重复使用sort.Stable来排序的方式。
@@ -30,11 +35,13 @@ func NewMultipleSorter(table *Table) *MultipleSorter {
 func (ms *MultipleSorter) AddCriteria(column int) { // 添加新列，有点类似于LRU算法的替换
 	for index, value := range ms.criteria {
 		if value == column {
+			// 将 column 从切片中删除
 			ms.criteria = append(ms.criteria[:index], ms.criteria[index+1:]...)
 			break
 		}
 	}
-	ms.criteria = append([]int{column}, ms.criteria...) // 把刚刚点击的列放在第一位
+	// 把刚刚点击的列放在第一位
+	ms.criteria = append([]int{column}, ms.criteria...)
 }
 
 // 实现sort.Interface
@@ -103,30 +110,34 @@ const TEMPL = `
 // 进行测试
 func main() {
 	// 构建数据
-	//table := &Table{Data: []Person{
-	//	{Name: "Alice", Age: 30, Sex: true, ID: 1},
-	//	{Name: "Bob", Age: 25, Sex: false, ID: 2},
-	//	{Name: "Charlie", Age: 35, Sex: true, ID: 3},
-	//	{Name: "Diana", Age: 28, Sex: false, ID: 4},
-	//	{Name: "Eve", Age: 22, Sex: true, ID: 5},
-	//}}
-	//ms := NewMultipleSorter(table)
-	//
-	//// 模拟点击列头的顺序
-	//ms.AddCriteria(1) // 先按第1列排序，第一列是年龄
-	//ms.AddCriteria(0) // 再按第0列排序，第零列是姓名
-	//
-	//sort.Sort(ms)
-	//for _, row := range table.Data {
-	//	fmt.Println(row)
-	//}
-	//
-	//ms.AddCriteria(1) // 先按第1列排序，第一列是年龄
-	//sort.Sort(ms)
-	//for _, row := range table.Data {
-	//	fmt.Println(row)
-	//}
-	//
+	table := &Table{Data: []Person{
+		{Name: "Alice", Age: 30, Sex: true, ID: 1},
+		{Name: "Bob", Age: 25, Sex: false, ID: 2},
+		{Name: "Charlie", Age: 35, Sex: true, ID: 3},
+		{Name: "Diana", Age: 28, Sex: false, ID: 4},
+		{Name: "Eve", Age: 22, Sex: true, ID: 5},
+		{Name: "Jack", Age: 22, Sex: true, ID: 6},
+		{Name: "Bob", Age: 18, Sex: false, ID: 7},
+	}}
+	ms := NewMultipleSorter(table)
+
+	// 模拟点击列头的顺序
+	ms.AddCriteria(1) // 先点击了 Age
+	ms.AddCriteria(0) // 再点击了 Name
+
+	fmt.Println("---------------------------")
+	sort.Sort(ms)
+	for _, row := range table.Data {
+		fmt.Println(row)
+	}
+
+	ms.AddCriteria(1) // 最后点击了 Age
+	sort.Sort(ms)
+	fmt.Println("---------------------------")
+	for _, row := range table.Data {
+		fmt.Println(row)
+	}
+
 	//// 构建模板
 	//templ, err := template.New("sort").Parse(TEMPL)
 	//if err != nil {

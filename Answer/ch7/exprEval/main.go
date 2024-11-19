@@ -1,12 +1,12 @@
 package main
 
 import (
-	"GoStudy/Answer/ch7/exprEval/eval"
 	"fmt"
+	"go_core_programming/Answer/ch7/exprEval/eval"
 )
 
 func main() {
-	exprStr := "sqrt(A / pi)"
+	exprStr := "3 + 4 * 2"
 	parsedExpr, err := eval.Parse(exprStr)
 	if err == nil {
 		err = parsedExpr.Check(map[eval.Var]bool{})

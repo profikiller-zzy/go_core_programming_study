@@ -96,7 +96,7 @@ func parseExpr(lex *lexer) Expr { return parseBinary(lex, 1) }
 func parseBinary(lex *lexer, prec1 int) Expr {
 	// 调用parseUnary解析左边的表达式
 	lhs := parseUnary(lex)
-	for prec := precedence(lex.token); prec >= prec1; prec-- { // lex.token = +  prec = 1 prec1=1
+	for prec := precedence(lex.token); prec >= prec1; prec-- {
 		for precedence(lex.token) == prec { // 确保了在同一优先级的所有运算符被处理
 			op := lex.token // 将当前的运算符存储在变量 op
 			lex.next()      // consume operator

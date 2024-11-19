@@ -9,7 +9,7 @@ func IsPalindrome(s sort.Interface) bool {
 	var len = s.Len()
 	for i := 0; i < len/2+1; i++ {
 		j := len - i
-		if s.Less(i, j) || s.Less(j, i) { // 这两个元素不相等就不知回文串
+		if s.Less(i, j) || s.Less(j, i) { // 这两个元素不相等就不是回文串
 			return false
 		}
 	}

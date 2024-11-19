@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"io"
 	"strings"
@@ -94,9 +93,14 @@ func main() {
 	// 创建一个读入流
 	r := strings.NewReader("1234567890")
 	r1 := LimitReader(r, 4)
-	s := bufio.NewScanner(r1)
-	s.Split(bufio.ScanBytes)
-	for s.Scan() {
-		fmt.Println(s.Text())
-	}
+	//s := bufio.NewScanner(r1)
+	//s.Split(bufio.ScanBytes)
+	//for s.Scan() {
+	//	fmt.Println(s.Text())
+	//}
+	var buf []byte
+	buf = make([]byte, 8)
+	n, err := r1.Read(buf)
+	fmt.Println(string(buf))
+	fmt.Printf("n: %d\t err: %v\n", n, err)
 }

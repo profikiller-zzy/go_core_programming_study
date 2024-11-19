@@ -192,7 +192,7 @@ import (
     "fmt"
     "log"
     "math"
-    "net/http"
+    "webCal/http"
 )
 
 const (
@@ -2813,3 +2813,914 @@ type Writer interface {
 
 
 
+### 8.4.2 实现接口的条件
+
+我们之前说过，一个类型如果拥有一个接口需要的所有方法，那么这个类型就实现了这个接口。即：
+
+```go
+var w io.Writer
+w = os.Stdout           // OK: *os.File has Write method
+w = new(bytes.Buffer)   // OK: *bytes.Buffer has Write method
+w = time.Now()         // compile error\
+
+var rwc io.ReadWriteCloser
+rwc = os.Stdout         // OK: *os.File has Read, Write, Close methods
+rwc = new(bytes.Buffer) // compile error: *bytes.Buffer lacks Close method
+```
+
+```
+Cannot use 'time.Now()' (type Time) as the type io.Writer Type does not implement 'io.Writer' as some methods are missing: Write(p []byte) (n int, err error)
+```
+
+这里必须要注意的一点是：在T类型的参数上调用一个`*T`的方法是合法的，编译器隐式的获取了它的地址。但这仅仅是一个语法糖：T类型的值不拥有所有`*T`指针的方法，这样对于类型`T`或者`*T`，各自定义的方法是独立的，这样它们实现的接口更少。例如：
+
+```go
+type IntSet struct { /* ... */ }
+func (*IntSet) String() string
+var _ = IntSet{}.String() // compile error: String requires *IntSet receiver
+```
+
+就像信封封装和隐藏起信件来一样，接口类型封装和隐藏具体类型和它的值。即使具体类型有其它的方法，也只有接口类型暴露出来的方法会被调用到：
+
+```go'
+os.Stdout.Write([]byte("hello")) // OK: *os.File has Write method
+os.Stdout.Close()                // OK: *os.File has Close method
+
+var w io.Writer
+w = os.Stdout
+w.Write([]byte("hello")) // OK: io.Writer has Write method
+w.Close()                // compile error: io.Writer lacks Close method
+```
+
+关于`interface{}`类型，它没有任何方法，可以说任何具体类型包括自定义类型都实现了`interface{}`，但是同样地因为interface{}没有任何方法，我们当然不能直接对它持有的值做任何操作(指调用方法)。
+
+### 8.4.3 接口值
+
+概念上讲一个接口的值，接口值，由两个部分组成，一个具体的类型和那个类型的值。它们被称为接口的动态类型和动态值。在编译阶段，**接口类型是已知的**，并且编译器会检查实现接口的类型是否满足接口的方法集要求。然而，**接口的具体内容（即接口的动态类型和动态值）在编译时是未知的**，因为它依赖于实际运行时赋值给接口的变量类型。
+
+例如：
+
+```go
+var w io.Writer
+w = os.Stdout
+w = new(bytes.Buffer)
+w = nil
+```
+
+首先，编译的时候就确定了`w`的类型是`io.Writer`，第一个语句定义了变量w:
+
+```
+var w io.Writer
+```
+
+初始化时，`Go`会将无论是变量还是接口都初始化为零值，对于一个接口的零值就是它的类型和值的部分都是`nil`。如图所示：
+
+![img](image\ch7-01.png)
+
+**一个接口值基于它的动态类型被描述为空或非空**，所以这是一个空的接口值。你可以通过使用w==nil或者w!=nil来判断接口值是否为空。调用一个空接口值上的任意方法都会产生panic:
+
+```go
+w.Write([]byte("hello")) // panic: nil pointer dereference
+```
+
+第二个语句将一个`*os.File`类型的值赋给变量w:
+
+```
+w = os.Stdout
+```
+
+这个赋值过程调用了一个**具体类型(`*os.File`)到接口类型(`io.Writer`)的隐式转换**，这个接口值的动态类型被设为`*os.File`指针的类型描述符，它的动态值持有`os.Stdout`的拷贝；这是一个代表处理标准输出的`os.File`类型变量的指针:
+
+![img](image\ch7-02.png)
+
+调用一个包含`*os.File`类型指针的接口值的Write方法，使得`(*os.File).Write`方法被调用。这个调用输出“hello”:
+
+```go
+w.Write([]byte("hello")) // "hello"
+```
+
+第三个语句给接口值赋了一个`*bytes.Buffer`类型的值:
+
+```
+w = new(bytes.Buffer)
+```
+
+现在动态类型是`*bytes.Buffer`并且动态值是一个指向新分配的缓冲区的指针:
+
+![img](image\ch7-03.png)
+
+Write方法的调用也使用了和之前一样的机制：
+
+```go
+w.Write([]byte("hello")) // writes "hello" to the bytes.Buffers
+```
+
+最后，第四个语句将nil赋给了接口值：
+
+```
+w = nil
+```
+
+这个重置将它所有的部分都设为nil值，把变量w恢复到和它之前定义时相同的状态:
+
+![img](image\ch7-01.png)
+
+接口值可以使用`==`和`!＝`来进行比较。两个接口值相等仅当它们都是`nil`值，或者它们的动态类型相同并且动态值也根据这个动态类型的`==`操作相等。因为接口值是可比较的，所以它们可以用在`map`的键或者作为`switch`语句的操作数。
+
+如果两个接口值的动态类型相同，但是这个动态类型是不可比较的（比如切片），将它们进行比较就会失败并且panic:
+
+```go
+var x interface{} = []int{1, 2, 3}
+fmt.Println(x == x) // panic: comparing uncomparable type []int
+```
+
+当我们处理错误或者调试的过程中，得知接口值的动态类型是非常有帮助的。所以我们使用fmt包的%T动作:
+
+```go
+var w io.Writer
+fmt.Printf("%T\n", w) // "<nil>"
+w = os.Stdout
+fmt.Printf("%T\n", w) // "*os.File"
+w = new(bytes.Buffer)
+fmt.Printf("%T\n", w) // "*bytes.Buffer"
+```
+
+##### 警告：一个包含nil指针的接口不是nil接口
+
+一个不包含任何值的`nil`接口值和一个刚好包含`nil`指针的接口值是不同的。这个细微区别产生了一个容易绊倒每个Go程序员的陷阱。
+
+```go
+const debug = true
+
+func main() {
+    var buf *bytes.Buffer
+    if debug {
+        buf = new(bytes.Buffer) // enable collection of output
+    }
+    f(buf) // NOTE: subtly incorrect!
+    if debug {
+        // ...use buf...
+    }
+}
+
+// If out is non-nil, output will be written to it.
+func f(out io.Writer) {
+    // ...do something...
+    if out != nil {
+        out.Write([]byte("done!\n"))
+    }
+}
+```
+
+实际上在`out.Write`方法调用时程序发生了panic，这是因为在`main`函数中将`buf`初始化为动态类型为`*bytes.Buffer`，而动态值为`nil`的指针，在调用函数`f`的时候做了接口类型的隐式转换，对于接口类型，判断一个接口类型变量为`nil`的条件是该变量的动态类型和动态值都是`nil`，所以语句`out != nil`输出为`True`，而对一个动态值为`nil`的变量调用`Write`函数会发生`panic`。
+
+### 8.4.4 类型断言
+
+语法上它看起来像`x.(T)`被称为断言类型，这里x表示一个接口的类型和T表示一个类型。
+
+类型断言分为两种，第一种，如果断言的类型T是一个具体类型，然后类型断言检查x的动态类型是否和T相同:
+
+```go
+var w io.Writer
+w = os.Stdout
+f := w.(*os.File)      // success: f == os.Stdout
+c := w.(*bytes.Buffer) // panic: interface holds *os.File, not *bytes.Buffer
+```
+
+第二种，如果相反地断言的类型T是一个接口类型，**然后类型断言检查是否x的动态类型满足T**:
+
+```go
+package main
+
+import "fmt"
+
+// 定义两个接口
+type Reader interface {
+	Read() string
+}
+
+type Writer interface {
+	Write(string)
+}
+
+// 定义一个结构体
+type File struct{}
+
+func (f File) Read() string {
+	return "Reading from file"
+}
+
+func (f File) Write(s string) {
+	fmt.Println("Writing to file:", s)
+}
+
+func main() {
+	var x Reader = File{} // x 是一个 Reader 接口的值
+
+	// 类型断言，将 x 转为 Writer 接口
+	y, ok := x.(Writer)
+	if ok {
+		fmt.Println("断言成功")
+		// y 是一个 Writer 接口的值，但动态部分仍然是 File
+		y.Write("Hello")
+	}
+}
+```
+
+`x` 是一个 `Reader` 接口，动态类型是 `File`，动态值是一个 `File` 的实例。类型断言 `x.(Writer)`：
+
+- Go 检查 `x` 的动态类型 `File` 是否实现了 `Writer` 接口，结果是实现了，因此断言成功。
+- 断言后，`y` 是一个新的接口值，静态类型是 `Writer`，但动态类型和值仍然是 `File`。
+
+也就是说，当`x.(T)`断言的`T`是接口类型时，类型断言只是“改变”了接口值的 **静态类型**，不会影响到动态类型和动态值部分。
+
+对一个接口值的动态类型我们是不确定的，当我们要对它进行确定类型的断言时，可以指定第二个返回的接收值，这个结果是一个标识成功与否的布尔值：
+
+```go
+var w io.Writer = os.Stdout
+f, ok := w.(*os.File)      // success:  ok, f == os.Stdout
+b, ok := w.(*bytes.Buffer) // failure: !ok, b == nil
+```
+
+第二个结果通常赋值给一个命名为`ok`的变量。如果这个操作失败了，那么`ok`就是`false`值，第一个结果等于被断言类型的零值，在这个例子中就是一个nil的`*bytes.Buffer`类型。
+
+# 九、 文件操作
+
+操作文件主要借助`os.File`，这个结构体的指针定义了很多对文件操作的方法，如下所示：
+
+![image-20241116165211118](image\image-20241116165211118.png)
+
+## 1. 文件操作的方法
+
+### 9.1.1 打开文件
+
+#### `os.Open`
+
+**功能**：以**只读模式**打开文件。**方法签名**：
+
+```go
+func Open(name string) (*File, error)
+```
+
+示例：
+
+```go
+file, err := os.Open("example.txt")
+if err != nil {
+    fmt.Println("文件打开失败:", err)
+    return
+}
+defer file.Close() // 确保文件关闭
+fmt.Println("文件打开成功:", file.Name())
+```
+
+#### `os.OpenFile`
+
+![image-20241118193352871](image\image-20241118193352871.png)
+
+**`os.OpenFile`*可以以指定的模式和权限打开文件。方法的签名如下：
+
+```go
+func OpenFile(name string, flag int, perm FileMode) (*File, error)
+```
+
+参数说明：
+
+`name`: 文件路径。
+
+`flag`: 文件操作模式，常用模式包括：
+
+- `os.O_RDONLY`：只读模式。
+- `os.O_WRONLY`：只写模式。
+- `os.O_RDWR`：读写模式。
+- `os.O_CREATE`：文件不存在时创建文件。
+- `os.O_APPEND`：追加写入模式。
+- `os.O_TRUNC`：打开文件时清空内容。
+
+`perm`: 文件权限（如 `0666` 表示文件可读写）。
+
+示例：
+
+```go
+file, err := os.OpenFile("example.txt", os.O_CREATE|os.O_WRONLY, 0666)
+if err != nil {
+    fmt.Println("文件打开失败:", err)
+    return
+}
+defer file.Close() // 确保文件关闭
+fmt.Println("文件成功打开或创建:", file.Name())
+```
+
+#### `bufio.Reader`和它所持有的方法`ReadString`
+
+`bufio.Reader`默认是带缓冲区的，其缓冲区的大小为4096字节，也就是说每次调用方法最多也就读取4096字节，也可以指定这个数，在创建`bufio.Reader`的时候。
+
+```go
+package bufio
+
+const (
+	defaultBufSize = 4096
+)
+
+func NewReaderSize(rd io.Reader, size int) *Reader
+// NewReaderSize创建一个具有最少有size尺寸的缓冲、从r读取的*Reader。如果参数r已经是一个具有足够大缓冲的* Reader类型值，会返回r。
+```
+
+例如：
+
+```go
+package main
+
+import (
+	"bufio"
+	"bytes"
+	"fmt"
+)
+
+func main() {
+	// 示例缓冲区小于数据大小
+	data := "Hello, this is a test without the delim."
+	reader := bufio.NewReaderSize(bytes.NewReader([]byte(data)), 10) // 缓冲区 10 字节
+
+	// 尝试读取直到分隔符（分隔符不存在）
+	result, err := reader.ReadString(',')
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+	}
+	fmt.Printf("Result: %q\n", result)
+}
+```
+
+结果如下：
+
+```
+Result: "Hello,"
+```
+
+### 9.1.2 读取文件
+
+#### `ioutil.ReadFile`
+
+函数签名如下：
+
+```go
+func ReadFile(filename string) ([]byte, error)
+```
+
+例如：
+
+```go
+package main
+
+import (
+	"fmt"
+	"io/ioutil"
+)
+
+func main() {
+	fileName := "code/chapter_9/fileOperation/test.txt"
+	data, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		fmt.Printf("error: %q\n", err)
+	}
+	fmt.Printf("%v\n", string(data))
+}
+```
+
+```
+我爱祖国
+我爱祖国
+我爱祖国  fkafaf
+```
+
+注意，`ioutil.ReadFile`有明显的**性能问题**，如下：
+
+- `ReadFile` 会一次性将整个文件读入内存，因此不适合处理大文件。
+- 对于大文件，建议使用流式读取（例如 `os.File` 的 `Read` 方法）。
+
+### 9.1.3 创建文件并写入
+
+#### **使用 `os.WriteFile`**
+
+Go 1.16 引入了 `os.WriteFile`，是写文件的简单方法。
+
+```go
+import (
+	"os"
+)
+
+func main() {
+	data := []byte("Hello, World!")
+	err := os.WriteFile("example.txt", data, 0644) // 文件权限为 0644
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+特点：
+
+- 简单高效，一次性写入整个文件。
+- 自动创建文件，如果文件存在则覆盖内容。
+- **适用场景**：小型文件写入，不需要处理文件内容追加。
+
+------
+
+#### **使用 `os.File` 的 `Write` 和 `WriteString`**
+
+手动控制文件写入，适用于追加写入或需要更高灵活性的场景。
+
+```go
+import (
+	"os"
+)
+
+func main() {
+	file, err := os.Create("example.txt") // 创建文件，如果文件存在会清空
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	// 写入字节
+	_, err = file.Write([]byte("Hello, "))
+	if err != nil {
+		panic(err)
+	}
+
+	// 写入字符串
+	_, err = file.WriteString("World!\n")
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+特点:
+
+- 灵活，适合多段内容写入或文件内容追加。
+- 文件操作需要手动关闭 `file.Close()`。
+- **适用场景**：中大型文件，或需要逐步写入内容时。
+
+------
+
+#### **使用 `bufio.Writer`**
+
+`bufio.Writer` 提供了缓冲写入，性能更高，适合频繁小量写入的场景。
+
+```go
+import (
+	"bufio"
+	"os"
+)
+
+func main() {
+	file, err := os.Create("example.txt")
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	writer := bufio.NewWriter(file)
+
+	// 缓冲写入
+	_, err = writer.WriteString("Buffered Hello, World!\n")
+	if err != nil {
+		panic(err)
+	}
+
+	// 由于bufio.NewWriter返回的bufio.Writer是带缓冲区的，需要调用Flush()
+    // 方法确保数据写入到文件中
+	writer.Flush()
+}
+```
+
+特点
+
+- 提高写入效率，减少磁盘 I/O 操作。
+- 需要调用 `Flush()` 将缓冲区内容写入文件。
+- **适用场景**：频繁写入小块数据，性能敏感的场景。
+
+------
+
+#### **使用 `ioutil.WriteFile`**（已废弃）
+
+在 Go 1.16 之前，`ioutil.WriteFile` 是常用的写文件方法。
+
+```go
+import (
+	"io/ioutil"
+)
+
+func main() {
+	data := []byte("Hello, World!")
+	err := ioutil.WriteFile("example.txt", data, 0644) // 文件权限为 0644
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+**特点**
+
+- 与 `os.WriteFile` 类似，简单易用。
+- **已废弃**，推荐使用 `os.WriteFile`。
+
+------
+
+#### **追加写入（Append）**
+
+对于需要在文件末尾追加内容的场景，可以使用 `os.OpenFile`。
+
+
+
+```go
+import (
+	"os"
+)
+
+func main() {
+	file, err := os.OpenFile("example.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	// 追加内容
+	_, err = file.WriteString("Appended content!\n")
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+**特点**
+
+- 适合日志写入等需要追加内容的场景。
+- 支持设置文件打开模式（如只写、只读、追加等）。
+
+------
+
+#### **使用 `fmt.Fprintf` 写入格式化内容**
+
+`fmt.Fprintf` 提供了格式化写入的能力，适合生成结构化文本。
+
+```go
+import (
+	"fmt"
+	"os"
+)
+
+func main() {
+	file, err := os.Create("example.txt")
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	// 写入格式化内容
+	_, err = fmt.Fprintf(file, "Name: %s, Age: %d\n", "Alice", 30)
+	if err != nil {
+		panic(err)
+	}
+}
+```
+
+**特点**
+
+- 支持格式化输出，适合生成配置文件或结构化内容。
+
+### 9.1.4 拷贝文件
+
+```go
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"io"
+	"os"
+)
+
+// CopyFile 接收两个文件路径 srcFileName dstFileName
+func CopyFile(dstFileName string, srcFileName string) (written int64, err error) {
+	srcFile, err := os.Open(srcFileName)
+	if err != nil {
+		fmt.Printf("open file err=%v\n", err)
+	}
+	defer srcFile.Close()
+	//通过 srcfile ,获取到 Reader
+	reader := bufio.NewReader(srcFile)
+	//打开 dstFileName
+	dstFile, err := os.OpenFile(dstFileName, os.O_WRONLY|os.O_CREATE, 0666)
+	if err != nil {
+		fmt.Printf("open file err=%v\n", err)
+		return
+	}
+	//通过 dstFile, 获取到 Writer
+	writer := bufio.NewWriter(dstFile)
+	defer dstFile.Close()
+	return io.Copy(writer, reader)
+}
+func main() {
+	//将 d:/flower.jpg 文件拷贝到 e:/abc.jpg
+	//调用 CopyFile 完成文件拷贝
+	srcFile := "d:/flower.jpg"
+	dstFile := "e:/abc.jpg"
+	_, err := CopyFile(dstFile, srcFile)
+	if err == nil {
+		fmt.Printf("拷贝完成\n")
+	} else {
+		fmt.Printf("拷贝错误 err=%v\n", err)
+	}
+}
+```
+
+### 9.1.5 统计英文、数字、空格和其他字符数量
+
+```go
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"io"
+	"os"
+)
+
+// CharCount 定义一个结构体，用于保存统计结果
+type CharCount struct {
+	ChCount    int // 记录英文个数
+	NumCount   int // 记录数字的个数
+	SpaceCount int // 记录空格的个数
+	OtherCount int // 记录其它字符的个数
+}
+
+func main() {
+	//思路: 打开一个文件, 创建一个 Reader
+	//每读取一行，就去统计该行有多少个 英文、数字、空格和其他字符
+	//然后将结果保存到一个结构体
+	fileName := "code/chapter_9/charCount/test.txt"
+	file, err := os.Open(fileName)
+	if err != nil {
+		fmt.Printf("open file err=%v\n", err)
+		return
+	}
+	defer file.Close()
+	//定义个 CharCount 实例
+	var count CharCount
+	//创建一个 Reader
+	reader := bufio.NewReader(file)
+	//开始循环的读取 fileName 的内容
+	for {
+		str, err := reader.ReadString('\n')
+		if err == io.EOF { //读到文件末尾就退出
+			break
+		}
+		//为了兼容中文字符, 可以将 strRune 转成 []rune
+		strRune := []rune(str)
+		//遍历 strRune ，进行统计
+		for _, v := range strRune {
+			switch {
+			case v >= 'a' && v <= 'z':
+				fallthrough //穿透
+			case v >= 'A' && v <= 'Z':
+				count.ChCount++
+			case v == ' ' || v == '\t':
+				count.SpaceCount++
+			case v >= '0' && v <= '9':
+				count.NumCount++
+			default:
+				count.OtherCount++
+			}
+		}
+	}
+	//输出统计的结果看看是否正确
+	fmt.Printf("字符的个数为=%v 数字的个数为=%v 空格的个数为=%v 其它字符个数=%v", count.ChCount, count.NumCount, count.SpaceCount, count.OtherCount)
+}
+```
+
+### 2. flag 解析命令行参数
+
+```go
+package main
+
+import (
+	"flag"
+	"fmt"
+)
+
+type flagValue struct {
+	user string // -u
+	pwd  string // -pwd
+	host string // -h
+	port int    // -p
+}
+
+func main() {
+	var f flagValue
+	// 注册flag
+	flag.StringVar(&f.user, "u", "", "用户名，默认为空")
+	flag.StringVar(&f.pwd, "pwd", "", "密码, 默认为空")
+	flag.StringVar(&f.host, "h", "localhost", "主机名, 默认为localhost")
+	flag.IntVar(&f.port, "port", 3306, "端口号, 默认为3306")
+
+	// 所有变量注册flag完毕之后，调用该方法解析
+	flag.Parse()
+	// 输出结果
+	fmt.Printf("user=%v pwd=%v\nhost=%v port=%v\n",
+		f.user, f.pwd, f.host, f.port)
+}
+```
+
+### 3. `JSON`
+
+`JSON` 应用场景：
+
+![image-20241118203701391](image\image-20241118203701391.png)
+
+#### 9.3.1 `JSON` 的序列化
+
+`json` 序列化是指，将有 **key-valu**e 结构的数据类型(比如**结构体、map、切片**)序列化成 `json` 字符串的操作。
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+)
+
+type Monster struct {
+	Name     string  `json:"name"`
+	Age      int     `json:"age"`
+	Birthday string  `json:"birthday"`
+	Sal      float64 `json:"sal"`
+	Skill    string  `json:"skill"`
+}
+
+func testStruct() {
+	//演示
+	monster := Monster{
+		Name:     "牛魔王",
+		Age:      500,
+		Birthday: "2011-11-11",
+		Sal:      8000.0,
+		Skill:    "牛魔拳"}
+	//将 monster 序列化
+	data, err := json.Marshal(&monster)
+	if err != nil {
+		fmt.Printf("序列化错误 err=%v\n", err)
+	}
+	//输出序列化后的结果
+	fmt.Printf("monster 序列化后=%v\n", string(data))
+}
+
+// 将 map 进行序列化
+func testMap() {
+	//定义一个 map
+	var a map[string]interface{}
+	//使用 map,需要 make
+	a = make(map[string]interface{})
+	a["name"] = "红孩儿"
+	a["age"] = 30
+	a["address"] = "洪崖洞"
+	//将 a 这个 map 进行序列化
+	//将 monster 序列化
+	data, err := json.Marshal(a)
+	if err != nil {
+		fmt.Printf("序列化错误 err=%v\n", err)
+	}
+	//输出序列化后的结果
+	fmt.Printf("a map 序列化后=%v\n", string(data))
+}
+
+// 演示对切片进行序列化, 我们这个切片 []map[string]interface{}
+func testSlice() {
+	var slice []map[string]interface{}
+	var m1 map[string]interface{}
+	//使用 map 前，需要先 make
+	m1 = make(map[string]interface{})
+	m1["name"] = "jack"
+	m1["age"] = "7"
+	m1["address"] = "北京"
+	slice = append(slice, m1)
+	var m2 map[string]interface{}
+	//使用 map 前，需要先 make
+	m2 = make(map[string]interface{})
+	m2["name"] = "tom"
+	m2["age"] = "20"
+	m2["address"] = [2]string{"墨西哥", "夏威夷"}
+	slice = append(slice, m2)
+	//将切片进行序列化操作
+	data, err := json.Marshal(slice)
+	if err != nil {
+		fmt.Printf("序列化错误 err=%v\n", err)
+	}
+	//输出序列化后的结果
+	fmt.Printf("slice 序列化后=%v\n", string(data))
+}
+
+// 对基本数据类型序列化，对基本数据类型进行序列化意义不大
+func testFloat64() {
+	var num1 float64 = 2345.67
+	//对 num1 进行序列化
+	data, err := json.Marshal(num1)
+	if err != nil {
+		fmt.Printf("序列化错误 err=%v\n", err)
+	}
+	//输出序列化后的结果
+	fmt.Printf("num1 序列化后=%v\n", string(data))
+}
+
+func main() {
+	//演示将结构体, map , 切片进行序列号
+	testStruct()
+	testMap()
+	testSlice() //演示对切片的序列化
+	testFloat64() //演示对基本数据类型的序列化
+}
+```
+
+#### 9.3.1 `JSON` 的反序列化
+
+`json` 反序列化是指，将 `json` 字符串反序列化成对应的数据类型(比如结构体、map、切片)的操作。
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+)
+
+type Monster struct {
+	Name     string
+	Age      int
+	Birthday string //.... Sal float64
+	Skill    string
+}
+
+// 演示将 json 字符串，反序列化成 struct
+func unmarshalStruct() {
+	//说明 str 在项目开发中，是通过网络传输获取到.. 或者是读取文件获取到
+	str := "{\"Name\":\"牛魔王\",\"Age\":500,\"Birthday\":\"2011-11-11\",\"Sal\":8000,\"Skill\":\"牛魔拳\"}"
+	//定义一个 Monster 实例
+	var monster Monster
+	err := json.Unmarshal([]byte(str), &monster)
+	if err != nil {
+		fmt.Printf("unmarshal err=%v\n", err)
+	}
+	fmt.Printf("反序列化后 monster=%v monster.Name=%v \n", monster, monster.Name)
+}
+
+// 演示将 json 字符串，反序列化成 map
+func unmarshalMap() {
+	str := "{\"address\":\"洪崖洞\",\"age\":30,\"name\":\"红孩儿\"}"
+	//定义一个 map
+	var a map[string]interface{}
+	//反序列化
+	//注意：反序列化 map,不需要 make,因为 make 操作被封装到 Unmarshal 函数
+	err := json.Unmarshal([]byte(str), &a)
+	if err != nil {
+		fmt.Printf("unmarshal err=%v\n", err)
+	}
+	fmt.Printf("反序列化后 a=%v\n", a)
+}
+
+// 演示将 json 字符串，反序列化成切片
+func unmarshalSlice() {
+	str := "[{\"address\":\"北京\",\"age\":\"7\",\"name\":\"jack\"}," +
+		"{\"address\":[\"墨西哥\",\"夏威夷\"],\"age\":\"20\",\"name\":\"tom\"}]"
+	//定义一个 slice
+	var slice []map[string]interface{}
+	//反序列化，不需要 make,因为 make 操作被封装到 Unmarshal 函数
+	err := json.Unmarshal([]byte(str), &slice)
+	if err != nil {
+		fmt.Printf("unmarshal err=%v\n", err)
+	}
+	fmt.Printf("反序列化后 slice=%v\n", slice)
+}
+
+func main() {
+	unmarshalStruct()
+	unmarshalMap()
+	unmarshalSlice()
+}
+```
+
+
+
+# 十、 单元测试
+
+在我们工作中，我们会遇到这样的情况，就是去确认一个函数，或者一个模块的结果是否正确，如：
+
+![image-20241118210329296](image\image-20241118210329296.png)
+
+Go 语言中自带有一个轻量级的测试框架 testing 和自带的 go test 命令来实现单元测试和性能测试，testing 框架和其他语言中的测试框架类似，可以基于这个框架写针对相应函数的测试用例，也可以基于该框架写相应的压力测试用例。通过单元测试，可以解决如下问题:
+
+- 确保**每个函数是可运行，并且运行结果是正确**的；
+
+- 确保写出来的代码**性能是好**的
+
+- 单元测试能及时的发现程序设计或实现的**逻辑错误**，使问题及早暴露，便于问题的定位解决，而**性能测试**的重点在于发现程序设计上的一些问题，让程序能够在高并发的情况下还能保持稳定。
