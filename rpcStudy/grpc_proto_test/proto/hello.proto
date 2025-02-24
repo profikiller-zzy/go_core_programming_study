@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option go_package = ".;proto";
+
+package proto;
+
+import "base.proto";
+import "google/protobuf/timestamp.proto";
+
+service sayHello {
+  rpc SayHello(HelloRequest) returns (HelloReply);
+  rpc Ping(Empty) returns (Pong);
+}
+
+message HelloRequest {
+  string name = 1;
+  google.protobuf.Timestamp createdAt = 2;
+}
+
+message HelloReply {
+  string message = 1;
+}

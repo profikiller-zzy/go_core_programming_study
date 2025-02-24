@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = ".;proto";
+
+message User {
+  repeated string names = 1;
+  string name = 2; // 注意这里的1指的是编号
+  int32 age = 3;
+  bytes bytes = 4;
+  enum enumType {
+    type1 = 0;
+    type2 = 1;
+  }
+  enumType type = 5;
+}
+
+service sayHello {
+  rpc SayHello(User) returns (User);
+}

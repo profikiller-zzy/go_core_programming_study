@@ -1,0 +1,19 @@
+syntax = "proto3";
+package example;
+option go_package = ".;proto";
+
+import "validate.proto";
+
+service Greeter {
+  rpc SayHello (Person) returns (Reply) {}
+}
+
+message Person {
+  uint64 id = 1 [(validate.rules).uint64.gt = 999];
+  string email = 2 [(validate.rules).string.email = true];
+  string name = 3 [(validate.rules).string = {pattern: "^[A-Za-z]+( [A-Za-z]+)*$", max_bytes: 256}];
+}
+
+message Reply {
+  string message = 1;
+}
