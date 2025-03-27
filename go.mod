@@ -5,6 +5,8 @@ go 1.22.12
 toolchain go1.23.6
 
 require (
+	github.com/apache/rocketmq-client-go/v2 v2.1.0-rc3
+	github.com/elastic/go-elasticsearch/v8 v8.17.1
 	github.com/envoyproxy/protoc-gen-validate v0.1.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-playground/locales v0.14.1
@@ -15,6 +17,22 @@ require (
 	golang.org/x/net v0.34.0
 	google.golang.org/grpc v1.48.0
 	google.golang.org/protobuf v1.35.2
+)
+
+require (
+	github.com/elastic/elastic-transport-go/v8 v8.6.1 // indirect
+	github.com/emirpasic/gods v1.12.0 // indirect
+	github.com/go-logr/logr v1.4.2 // indirect
+	github.com/go-logr/stdr v1.2.2 // indirect
+	github.com/konsorten/go-windows-terminal-sequences v1.0.3 // indirect
+	github.com/sirupsen/logrus v1.6.0 // indirect
+	github.com/tidwall/gjson v1.2.1 // indirect
+	github.com/tidwall/match v1.0.1 // indirect
+	github.com/tidwall/pretty v0.0.0-20190325153808-1166b9ac2b65 // indirect
+	go.opentelemetry.io/otel v1.28.0 // indirect
+	go.opentelemetry.io/otel/metric v1.28.0 // indirect
+	go.opentelemetry.io/otel/trace v1.28.0 // indirect
+	stathat.com/c/consistent v1.0.0 // indirect
 )
 
 require (
