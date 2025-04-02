@@ -20,7 +20,7 @@ func main() {
 	}
 
 	// 订阅消息
-	err = c.Subscribe("mxshop_test", consumer.MessageSelector{},
+	err = c.Subscribe("order_reback", consumer.MessageSelector{},
 		func(ctx context.Context, msgs ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
 			for i := range msgs {
 				fmt.Printf("received message: %s\n", msgs[i].Body)

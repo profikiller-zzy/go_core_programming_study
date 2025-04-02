@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option go_package=".;proto";
+package proto;
+
+// 天气服务定义
+service WeatherService {
+  // 聊天接口（流式）
+  rpc ChatStream (stream ChatRequest) returns (stream ChatResponse) {}
+}
+
+// 聊天请求
+message ChatRequest {
+  string message = 1;
+}
+
+// 聊天响应
+message ChatResponse {
+  string response = 1;
+}

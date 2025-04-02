@@ -17,8 +17,8 @@ func (tl *transactionListener) ExecuteLocalTransaction(msg *primitive.Message) p
 	time.Sleep(time.Second * 2)
 	// 假如说这里的本地事务突然挂掉了，什么都返回不了
 	fmt.Printf("%v\n", time.Now().Format("2006-01-02 15:04:05"))
-	fmt.Println("假设这里的本地事务执行失败了，突然宕机")
-	return primitive.UnknowState
+	//fmt.Println("假设这里的本地事务执行失败了，突然宕机")
+	return primitive.CommitMessageState
 }
 
 func (tl *transactionListener) CheckLocalTransaction(msg *primitive.MessageExt) primitive.LocalTransactionState {
@@ -36,7 +36,7 @@ func newTransactionListener() primitive.TransactionListener {
 func main() {
 	p, _ := rocketmq.NewTransactionProducer(
 		newTransactionListener(),
-		producer.WithNameServer([]string{"http://8.155.39.153:9876"}),
+		producer.WithNameServer([]string{"8.155.39.153:9876"}),
 		producer.WithRetry(1),
 	)
 	_ = p.Start()
