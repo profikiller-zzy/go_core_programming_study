@@ -1,7 +1,6 @@
 package main
 
 import (
-<<<<<<< HEAD
 	"bufio"
 	"context"
 	"errors"
@@ -15,11 +14,6 @@ import (
 	"google.golang.org/grpc"
 
 	"go_core_programming/proto"
-=======
-	"context"
-	"fmt"
-	"time"
->>>>>>> 21e0681fe04e4d4d9ae7d26d88cb551a7f13f292
 )
 
 var ChatClient proto.WeatherServiceClient

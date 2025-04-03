@@ -2,16 +2,6 @@ package main
 
 import "fmt"
 
-<<<<<<< HEAD
-func searchRange(nums []int, target int) []int {
-
-}
-
-func main() {
-
-=======
-import "fmt"
-
 // https://leetcode.cn/problems/find-first-and-last-position-of-element-in-sorted-array/
 func searchRange(nums []int, target int) []int {
 	var res []int = make([]int, 2)
@@ -57,5 +47,4 @@ func searchRange(nums []int, target int) []int {
 func main() {
 	var nums []int = []int{5, 7, 7, 8, 8, 10}
 	fmt.Println(searchRange(nums, 8))
->>>>>>> 21e0681fe04e4d4d9ae7d26d88cb551a7f13f292
 }
