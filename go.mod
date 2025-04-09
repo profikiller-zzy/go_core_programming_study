@@ -13,16 +13,19 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.1
 	github.com/hashicorp/consul/api v1.31.2
 	github.com/nacos-group/nacos-sdk-go/v2 v2.1.1
+	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.60.0
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.60.0
 	go.opentelemetry.io/otel v1.35.0
 	go.opentelemetry.io/otel/exporters/jaeger v1.17.0
 	go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v1.35.0
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.35.0
+	go.opentelemetry.io/otel/metric v1.35.0
 	go.opentelemetry.io/otel/sdk v1.35.0
 	go.opentelemetry.io/otel/sdk/metric v1.35.0
 	go.opentelemetry.io/otel/trace v1.35.0
 	golang.org/x/net v0.35.0
 	google.golang.org/grpc v1.71.0
-	google.golang.org/protobuf v1.36.4
+	google.golang.org/protobuf v1.36.5
 )
 
 require (
@@ -38,8 +41,6 @@ require (
 	github.com/tidwall/match v1.0.1 // indirect
 	github.com/tidwall/pretty v0.0.0-20190325153808-1166b9ac2b65 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.60.0 // indirect
-	go.opentelemetry.io/otel/metric v1.35.0 // indirect
 	stathat.com/c/consistent v1.0.0 // indirect
 )
 

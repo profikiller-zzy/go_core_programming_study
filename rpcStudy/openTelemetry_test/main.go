@@ -25,37 +25,40 @@ func initTracer() func(context.Context) error {
 	tp := tracesdk.NewTracerProvider(
 		tracesdk.WithBatcher(exp),
 		tracesdk.WithResource(resource.NewWithAttributes(
-			semconv.SchemaURL,
-			semconv.ServiceNameKey.String("example-service"),
+			semconv.SchemaURL,                                // 配置资源属性
+			semconv.ServiceNameKey.String("example-service"), // 配置服务名称
 		)),
 	)
 
-	// 将刚刚配置的jaeger服务端点注册到全局的TracerProvider
+	// 将刚刚配置的jaeger服务端点注册到全局的 TracerProvider
 	otel.SetTracerProvider(tp)
 
 	return tp.Shutdown
+}
+
+func function2(ctx context.Context, tracer trace.Tracer) {
+	// function2 span 继承自 function1 span
+	ctx, span := tracer.Start(ctx, "function2")
+	defer span.End()
+
+	time.Sleep(500 * time.Millisecond)
 }
 
 func main() {
 	shutdown := initTracer()
 	defer shutdown(context.Background())
 
-	// 初始化tracer
 	tracer := otel.Tracer("mxshop-example-tracer")
+	mainCtx := context.Background()
 
-	// 创建根 Context
-	ctx := context.Background()
+	// 根 Span
+	mainCtx, mainSpan := tracer.Start(mainCtx, "main")
+	defer mainSpan.End()
 
-	// 第一个 Span（根 Span）
-	ctx, span := tracer.Start(ctx, "function1")
+	// 创建子 Span
+	_, span1 := tracer.Start(mainCtx, "function 1")
 	time.Sleep(500 * time.Millisecond)
-	span.End()
+	span1.End()
 
-	// 第二个 Span（FollowsFrom 关系）
-	options := []trace.SpanStartOption{
-		trace.WithLinks(trace.LinkFromContext(ctx)),
-	}
-	_, span2 := tracer.Start(ctx, "function2", options...)
-	time.Sleep(500 * time.Millisecond)
-	span2.End()
+	function2(mainCtx, tracer) // 调用子函数并传入 ctx
 }
