@@ -5,12 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/nacos-group/nacos-sdk-go/v2/common/logger"
 	"log"
 	"strings"
 
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
+	"github.com/nacos-group/nacos-sdk-go/v2/common/logger"
 )
 
 type User struct {

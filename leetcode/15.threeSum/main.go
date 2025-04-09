@@ -5,6 +5,8 @@ import (
 	"sort"
 )
 
+// https://leetcode.cn/problems/3sum
+
 func threeSum(nums []int) [][]int {
 	var res [][]int
 	if len(nums) < 3 {
@@ -24,10 +26,10 @@ func threeSum(nums []int) [][]int {
 			sum := nums[left] + nums[mid] + nums[right]
 			if sum == 0 {
 				res = append(res, []int{nums[left], nums[mid], nums[right]})
-				for mid < right && nums[mid] == nums[mid+1] { // 调过重复的
+				for mid < right && nums[mid] == nums[mid+1] { // 跳过重复的
 					mid++
 				}
-				for mid < right && nums[right] == nums[right-1] { // 调过重复的
+				for mid < right && nums[right] == nums[right-1] { // 跳过重复的
 					right--
 				}
 				mid++
