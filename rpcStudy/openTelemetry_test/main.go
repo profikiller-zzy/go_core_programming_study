@@ -25,7 +25,7 @@ func initTracer() func(context.Context) error {
 	tp := tracesdk.NewTracerProvider(
 		tracesdk.WithBatcher(exp),
 		tracesdk.WithResource(resource.NewWithAttributes(
-			semconv.SchemaURL,                                // 配置资源属性
+			semconv.SchemaURL, // 配置资源属性
 			semconv.ServiceNameKey.String("example-service"), // 配置服务名称
 		)),
 	)
