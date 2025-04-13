@@ -22,7 +22,7 @@ func main() {
 		{
 			Resource:               "some-test",
 			Threshold:              2000,
-			WarmUpPeriodSec:        10, // 预热的时间长度
+			WarmUpPeriodSec:        10, // 预热的时间长度，也就是说在10秒之内慢慢达到设置的流量最大频率
 			StatIntervalInMs:       1000,
 			TokenCalculateStrategy: flow.WarmUp, // 冷启动策略
 			ControlBehavior:        flow.Reject, // 超过请求频率的直接拒绝
