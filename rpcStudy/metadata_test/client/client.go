@@ -3,19 +3,20 @@ package main
 import (
 	"context"
 	"fmt"
-	"google.golang.org/grpc/metadata"
 	"log"
-	pb "rpcStudy/metadata_test/proto"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
+
+	pb "go_core_programming/rpcStudy/metadata_test/proto"
 )
 
-// intercept 拦截器函数
+// intercept 拦截器函数，往context中添加metadata
 func returnIntercept() func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 	return func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 		// 创建metadata
 		md := metadata.New(map[string]string{
-			"username": "bobby",
+			"username": "profikiller",
 			"password": "123456",
 		})
 		// 将metadata附加到context中

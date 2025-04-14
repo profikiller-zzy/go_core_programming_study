@@ -2,6 +2,8 @@ package main
 
 import "fmt"
 
+// https://leetcode.cn/problems/container-with-most-water/description
+
 func maxArea(height []int) int {
 	var fewer = func(a int, b int) int {
 		if a > b {
