@@ -15,17 +15,17 @@ func reverseKGroup(head *ListNode, k int) *ListNode {
 		return head
 	}
 	var (
-		pre      *ListNode = &ListNode{Val: -1}
+		pre *ListNode = &ListNode{Val: -1,
+			Next: head}
 		trueHead *ListNode = pre
 	)
-	pre.Next = head
 	curGroupHead := head
 
 	// 先检查剩余需要处理的节点的个数是否大于group长度
 	for {
 		var nextGroupHead *ListNode = curGroupHead
 		for i := 0; i < k; i++ {
-			if nextGroupHead == nil { // 长度不够
+			if nextGroupHead == nil { // 长度不够,直接返回
 				return trueHead.Next
 			}
 			nextGroupHead = nextGroupHead.Next

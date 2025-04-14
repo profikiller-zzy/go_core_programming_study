@@ -13,8 +13,7 @@ func swapPairs(head *ListNode) *ListNode {
 		return head
 	}
 	// 增加一个ghost节点用于指向头节点
-	var ghostNode *ListNode = new(ListNode)
-	ghostNode.Next = head
+	ghostNode := &ListNode{Next: head}
 	left := ghostNode
 	mid := head
 	right := head.Next
