@@ -6,6 +6,8 @@ type ListNode struct {
 	Next *ListNode
 }
 
+// https://leetcode.cn/problems/merge-k-sorted-lists/description
+
 func mergeKLists(lists []*ListNode) *ListNode {
 	var res *ListNode
 	if len(lists) == 0 {
