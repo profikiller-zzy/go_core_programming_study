@@ -8,15 +8,22 @@ type TreeNode struct {
 }
 
 func lowestCommonAncestor(root, p, q *TreeNode) *TreeNode {
-
-}
-
-func isAncestor(root, p, q *TreeNode) bool {
+	// 使用先序遍历访问树节点
 	if root == nil {
-		return false
+		return nil
 	}
 	if root == p || root == q {
-		return true
+		// 先序遍历首先访问根结点
+		return root
 	}
-	return isAncestor(root.Left, p, q) || isAncestor(root.Right, p, q)
+	left := lowestCommonAncestor(root.Left, p, q)
+	right := lowestCommonAncestor(root.Right, p, q)
+	if left == nil {
+		return right
+	}
+	if right == nil {
+		return left
+	}
+	// 如果左右两个返回的节点都不为空，说明p和q分别在左右子树中，而这个root就是p和q的共同祖先
+	return root
 }
