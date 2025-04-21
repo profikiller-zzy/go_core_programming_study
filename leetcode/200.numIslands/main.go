@@ -20,6 +20,7 @@ func numIslands(grid [][]byte) int {
 			dfs(row, col+1)
 		}
 	}
+	
 	for row := 0; row < rows; row++ {
 		for col := 0; col < cols; col++ {
 			if grid[row][col] == '1' {
