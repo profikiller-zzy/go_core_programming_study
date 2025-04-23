@@ -1,30 +1,26 @@
 package main
 
-import (
-	"fmt"
-	"time"
-)
+func foo(arg_val int) *int {
+
+	var foo_val1 *int = new(int)
+	var foo_val2 *int = new(int)
+	var foo_val3 *int = new(int)
+	var foo_val4 *int = new(int)
+	var foo_val5 *int = new(int)
+
+	//此处循环是防止go编译器将foo优化成inline(内联函数)
+	//如果是内联函数，main调用foo将是原地展开，所以foo_val1-5相当于main作用域的变量
+	//即使foo_val3发生逃逸，地址与其他也是连续的
+	for i := 0; i < 5; i++ {
+		println(arg_val, foo_val1, foo_val2, foo_val3, foo_val4, foo_val5)
+	}
+
+	//返回foo_val3给main函数
+	return foo_val3
+}
 
 func main() {
-	// 协程 A
-	go func() {
-		for {
-			time.Sleep(100 * time.Millisecond)
-			fmt.Println("协程 A")
-		}
-	}()
+	main_val := foo(666)
 
-	// 协程 B
-	go func() {
-		defer func() {
-			if err := recover(); err != nil { // 哪个协程Panic就需要在哪个协程recover
-				fmt.Println("协程 B recover:", err)
-			}
-		}()
-		time.Sleep(1 * time.Second) // 确保 协程 A 先运行起来
-		panic("协程 B panic")
-	}()
-
-	time.Sleep(10 * time.Second) // 充分等待协程 B 触发 panic 完成和协程 A 执行完毕
-	fmt.Println("main end")
+	println(*main_val, main_val)
 }
