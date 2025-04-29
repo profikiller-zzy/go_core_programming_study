@@ -28,13 +28,14 @@ func decodeString(s string) string {
 			currNum = 0
 		} else if ch == ']' {
 			lastStr := strStack[len(strStack)-1]
-			lastNum := numStack[len(numStack)-1]
+			curNum := numStack[len(numStack)-1]
 			strStack = strStack[:len(strStack)-1]
 			numStack = numStack[:len(numStack)-1]
 
+			// 构建当前字符串 str = lastStr + currStr * curNum
 			var temp strings.Builder
 			temp.WriteString(lastStr)
-			for j := 0; j < lastNum; j++ {
+			for j := 0; j < curNum; j++ {
 				temp.WriteString(currStr.String())
 			}
 			currStr.Reset()
@@ -47,6 +48,6 @@ func decodeString(s string) string {
 }
 
 func main() {
-	s := "3[a2[c]]"
+	s := "3[a2[c]]abc"
 	fmt.Println(decodeString(s))
 }
