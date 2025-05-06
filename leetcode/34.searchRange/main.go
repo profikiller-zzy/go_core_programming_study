@@ -20,7 +20,7 @@ func searchRange(nums []int, target int) []int {
 			left = mid + 1
 		}
 	}
-	// 这时候left一般是指向范围的做最左侧边界，如果left越界或者left指向的num不等于target，说明没有找到target
+	// 这时候left一般是指向范围的最左侧边界，如果left越界或者left指向的num不等于target，说明没有找到target
 	if left <= len(nums)-1 && nums[left] == target {
 		res[0] = left
 	} else {
