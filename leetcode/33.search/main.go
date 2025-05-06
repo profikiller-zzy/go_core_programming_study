@@ -7,22 +7,19 @@ import "fmt"
 func search(nums []int, target int) int {
 	// 先找到k
 	var (
-		low  int = 0
-		high int = len(nums) - 1
+		low  = 0
+		high = len(nums) - 1
+		k    = 0
 	)
-	kMid := (low + high) / 2
-	k := 0
-	for kMid >= 0 && kMid < len(nums) {
-		kMid = (low + high) / 2
-		if nums[kMid] > nums[high] { // 说明k在mid的右边，缩短
-			low = kMid + 1
-		} else if nums[kMid] < nums[high] { // 说明k在mid的左边，缩短
-			high = kMid
+	for low < high {
+		mid := (low + high) / 2
+		if nums[mid] > nums[high] {
+			low = mid + 1
 		} else {
-			k = kMid
-			break
+			high = mid
 		}
 	}
+	k = low // low == high，最终指向最小值下标
 
 	// 然后根据k进行二分查找
 	var binarySearch func(nums []int, target int, low int, high int) int

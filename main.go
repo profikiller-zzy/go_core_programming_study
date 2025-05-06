@@ -1,5 +1,7 @@
 package main
 
+var p uintptr
+
 func foo(arg_val int) *int {
 
 	var foo_val1 *int = new(int)
