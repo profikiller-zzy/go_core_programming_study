@@ -2,13 +2,16 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"google.golang.org/grpc"
 	"log"
 	"net"
-	pb "rpcStudy/stream_rpc_test/proto"
 	"sync"
 	"time"
+
+	pb "go_core_programming/rpcStudy/stream_rpc_test/proto"
+
+	"google.golang.org/grpc"
 )
 
 const Port = ":50052"
@@ -22,7 +25,7 @@ func (s *server) GetStream(req *pb.StreamRequest, serverStr pb.Greeter_GetStream
 	// 示例：持续发送数据，直到上下文被取消或达到条件
 	for i := 1; i <= 10; i++ {
 		// 检查客户端是否已断开连接
-		if serverStr.Context().Err() == context.Canceled {
+		if errors.Is(serverStr.Context().Err(), context.Canceled) {
 			return serverStr.Context().Err()
 		}
 
