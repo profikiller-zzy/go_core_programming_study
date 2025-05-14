@@ -19,6 +19,9 @@ func minDistance(word1 string, word2 string) int {
 			if word1[i] == word2[j] {
 				dp[i+1][j+1] = dp[i][j]
 			} else {
+				// dp[i][j] 代表 dp[i+1][j+1] 是通过替换 word1[i] 或 word2[j] 来得到的
+				// dp[i+1][j] 代表 dp[i+1][j+1] 是通过删除 word1[i] 来得到的
+				// dp[i][j+1] 代表 dp[i+1][j+1] 是通过删除 word2[j] 来得到的
 				dp[i+1][j+1] = min(dp[i][j], dp[i+1][j], dp[i][j+1]) + 1
 			}
 		}
