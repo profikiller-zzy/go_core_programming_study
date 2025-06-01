@@ -6,69 +6,6 @@ import (
 	"sort"
 )
 
-type winnerTree struct {
-	players []int // 存储选手的值
-	tree    []int // 存储树的节点
-	k       int   // 选手的数量
-}
-
-func newWinnerTree(k int, players []int) *winnerTree {
-	wt := &winnerTree{
-		players: make([]int, k),
-		tree:    make([]int, 2*k-1),
-		k:       k,
-	}
-	wt.init(players)
-	return wt
-}
-
-func (wt *winnerTree) init(players []int) {
-	wt.players = players
-	wt.buildTree()
-}
-
-func (wt *winnerTree) buildTree() {
-	for i := 0; i < wt.k; i++ {
-		wt.tree[wt.k-1+i] = i
-	}
-	for i := wt.k - 2; i >= 0; i-- {
-		if wt.players[wt.tree[2*i+1]] > wt.players[wt.tree[2*i+2]] {
-			wt.tree[i] = wt.tree[2*i+1]
-		} else {
-			wt.tree[i] = wt.tree[2*i+2]
-		}
-	}
-}
-
-func (wt *winnerTree) returnWinner() int {
-	return wt.players[wt.tree[0]]
-}
-
-func (wt *winnerTree) update(index int, value int) {
-	wt.players[index] = value
-	treeIndex := wt.k - 1 + index
-	for treeIndex > 0 {
-		parent := (treeIndex - 1) / 2
-		if wt.players[wt.tree[2*parent+1]] > wt.players[wt.tree[2*parent+2]] {
-			wt.tree[parent] = wt.tree[2*parent+1]
-		} else {
-			wt.tree[parent] = wt.tree[2*parent+2]
-		}
-		treeIndex = parent
-	}
-}
-
-func maxSlidingWindow(nums []int, k int) []int {
-	winnerTree := newWinnerTree(k, nums[:k])
-	var result []int
-	for i := k; i < len(nums); i++ {
-		result = append(result, winnerTree.returnWinner())
-		winnerTree.update(i%k, nums[i])
-	}
-	result = append(result, winnerTree.returnWinner())
-	return result
-}
-
 var a []int
 
 type hp struct{ sort.IntSlice }
@@ -101,6 +38,34 @@ func maxSlidingWindow1(nums []int, k int) []int {
 		ans = append(ans, nums[q.IntSlice[0]])
 	}
 	return ans
+}
+
+// maxSlidingWindow 使用单调队列实现窗口最大值
+func maxSlidingWindow(nums []int, k int) []int {
+	var queue = make([]int, 0)
+	push := func(index int) {
+		// 如果len(queue) > 0，代表队列中有之前的元素，index为当前元素的索引
+		// 加入新元素索引，同时维持队列的递减性，这样可以保证队头始终是当前窗口中最大元素的索引
+		for len(queue) > 0 && nums[index] > nums[queue[len(queue)-1]] {
+			queue = queue[:len(queue)-1]
+		}
+		queue = append(queue, index)
+	}
+
+	var res = make([]int, 1, len(nums)-k+1)
+	for index := 0; index < k; index++ {
+		push(index)
+	}
+	res[0] = nums[queue[0]]
+
+	for index := k; index < len(nums); index++ {
+		push(index)
+		for queue[0] <= index-k { // 将不在窗口中的索引（不在窗口范围内）移出
+			queue = queue[1:]
+		}
+		res = append(res, nums[queue[0]])
+	}
+	return res
 }
 
 func main() {
