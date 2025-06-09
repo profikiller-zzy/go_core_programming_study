@@ -34,7 +34,7 @@ func (stack *Stack) pop() *TreeNode {
 	return node
 }
 
-func isValidBST(root *TreeNode) bool {
+func isValidBST1(root *TreeNode) bool {
 	if root == nil {
 		return true
 	}
@@ -59,6 +59,31 @@ func isValidBST(root *TreeNode) bool {
 			prev = cur
 		}
 		curNode = curNode.Right
+	}
+	return true
+}
+
+// isValidBST 递归法，递归中序遍历得到遍历数组，最后检查数组是否递增
+func isValidBST(root *TreeNode) bool {
+	if root == nil {
+		return true
+	}
+	var value = make([]int, 0)
+	var traverse func(node *TreeNode)
+	traverse = func(node *TreeNode) {
+		if node == nil {
+			return
+		}
+		traverse(node.Left)
+		value = append(value, node.Val)
+		traverse(node.Right)
+	}
+	traverse(root)
+
+	for index := 1; index < len(value); index++ {
+		if value[index] <= value[index-1] {
+			return false
+		}
 	}
 	return true
 }
