@@ -9,6 +9,7 @@ import (
 	"github.com/cloudwego/eino/compose"
 	"github.com/cloudwego/eino/schema"
 	"log"
+	"os"
 	"time"
 )
 
@@ -17,7 +18,7 @@ func main() {
 
 	// 创建 deepseek 模型
 	cm, err := deepseek.NewChatModel(ctx, &deepseek.ChatModelConfig{
-		APIKey:    "sk-10f31c7c90ef46d2bd270cbaec105799",
+		APIKey:    os.Getenv("DEEPSEEK_APIKEY"),
 		Model:     "deepseek-chat",
 		MaxTokens: 2000,
 	})

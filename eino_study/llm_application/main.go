@@ -8,6 +8,7 @@ import (
 	"github.com/cloudwego/eino/schema"
 	"io"
 	"log"
+	"os"
 )
 
 func main() {
@@ -45,8 +46,8 @@ func main() {
 	chatModel, err := openai.NewChatModel(context.Background(), &openai.ChatModelConfig{
 		Model:       "deepseek-chat", // 使用的模型版本
 		BaseURL:     "https://api.deepseek.com",
-		APIKey:      "sk-10f31c7c90ef46d2bd270cbaec105799", // OpenAI API 密钥
-		Temperature: &temperature,                          // 控制生成文本的随机性
+		APIKey:      os.Getenv("DEEPSEEK_APIKEY"), // OpenAI API 密钥
+		Temperature: &temperature,                 // 控制生成文本的随机性
 	})
 	if err != nil {
 		log.Fatalf("create chat model error: %v", err)
