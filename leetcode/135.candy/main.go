@@ -1,30 +1,32 @@
 package main
 
 func candy(ratings []int) int {
-	candyNum := make([]int, len(ratings))
-	// 首先初始化
-	for index := 0; index < len(candyNum); index++ {
-		candyNum[index] = 1
+	n := len(ratings)
+	candies := make([]int, n)
+
+	// 每人先分 1 个糖果
+	for i := 0; i < n; i++ {
+		candies[i] = 1
 	}
-	for index := 0; index < len(candyNum); index++ {
-		theWeak := make([]int, 0)
-		if index-1 >= 0 && ratings[index] > ratings[index-1] {
-			theWeak = append(theWeak, candyNum[index-1])
-		}
-		if index+1 < len(candyNum) && ratings[index] > ratings[index+1] {
-			theWeak = append(theWeak, candyNum[index+1])
-		}
-		if len(theWeak) == 0 {
-			continue
-		} else if len(theWeak) == 1 {
-			candyNum[index] = theWeak[0] + 1
-		} else {
-			candyNum[index] = max(theWeak[0], theWeak[1]) + 1
+
+	// 从左往右：如果右边比左边评分高，右边糖果 = 左边 + 1
+	for i := 1; i < n; i++ {
+		if ratings[i] > ratings[i-1] {
+			candies[i] = candies[i-1] + 1
 		}
 	}
-	var total int
-	for index := 0; index < len(candyNum); index++ {
-		total += candyNum[index]
+
+	// 从右往左：如果左边比右边评分高，左边糖果 = max(左边当前, 右边 + 1)
+	for i := n - 2; i >= 0; i-- {
+		if ratings[i] > ratings[i+1] {
+			candies[i] = max(candies[i], candies[i+1]+1)
+		}
+	}
+
+	// 累加所有糖果
+	total := 0
+	for _, c := range candies {
+		total += c
 	}
 	return total
 }
