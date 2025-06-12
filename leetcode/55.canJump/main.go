@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 
-func canJump(nums []int) bool {
+func canJump1(nums []int) bool {
 	if len(nums) <= 1 {
 		return true
 	}
@@ -22,6 +22,20 @@ func canJump(nums []int) bool {
 			}
 		} else {
 			break
+		}
+	}
+	return false
+}
+
+// canJump 贪心算法解题
+func canJump(nums []int) bool {
+	var farestDis int
+	for index := 0; index < len(nums); index++ {
+		if index <= farestDis {
+			farestDis = max(farestDis, nums[index]+index)
+			if farestDis >= len(nums)-1 {
+				return true
+			}
 		}
 	}
 	return false
