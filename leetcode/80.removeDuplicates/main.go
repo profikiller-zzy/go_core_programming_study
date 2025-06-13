@@ -26,3 +26,8 @@ func removeDuplicates(nums []int) int {
 	}
 	return slow + 1
 }
+
+func main() {
+	nums := []int{1, 1, 1, 2, 2, 3}
+	removeDuplicates(nums)
+}

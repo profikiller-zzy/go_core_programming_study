@@ -31,7 +31,7 @@ func groupAnagrams(strs []string) [][]string {
 		return string(srcBytes)
 	}
 
-	// 字母异位词重新排序后的字符串都是相同的，直接讲排序后的字符串作为key存入map中
+	// 字母异位词重新排序后的字符串都是相同的，直接将排序后的字符串作为key存入map中
 	strHash := make(map[string][]string)
 	for _, str := range strs {
 		strHash[processStr(str)] = append(strHash[processStr(str)], str)
