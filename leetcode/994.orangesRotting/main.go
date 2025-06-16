@@ -61,7 +61,6 @@ func orangesRotting(grid [][]int) int {
 		}
 	}
 	return step
-	
 }
 
 func main() {
