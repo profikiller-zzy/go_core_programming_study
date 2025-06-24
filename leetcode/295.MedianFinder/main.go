@@ -6,7 +6,7 @@ import (
 	"sort"
 )
 
-// 小顶堆（存放较大的那一半）
+// 小顶堆，存放大于等于中位数的那一部分
 type minHeap struct{ sort.IntSlice }
 
 func (h *minHeap) Push(x interface{}) {
@@ -20,7 +20,7 @@ func (h *minHeap) Pop() interface{} {
 	return x
 }
 
-// 大顶堆（存放较小的那一半）
+// 大顶堆，存放小于中位数的数
 type maxHeap struct{ sort.IntSlice }
 
 func (h *maxHeap) Less(i, j int) bool { return h.IntSlice[i] > h.IntSlice[j] } // 实现大顶堆
@@ -38,7 +38,6 @@ func (h *maxHeap) Pop() interface{} {
 type MedianFinder struct {
 	sHeap *minHeap // 小顶堆，存储大于等于中位数的数
 	bHeap *maxHeap // 大顶堆，存储小于中位数的数
-
 }
 
 func Constructor() MedianFinder {
@@ -49,12 +48,14 @@ func Constructor() MedianFinder {
 }
 
 func (this *MedianFinder) AddNum(num int) {
+	// 小顶堆用于存放大于等于中位数的数，而大顶堆用来存放小于中位数的数
 	if this.sHeap.Len() == 0 || num >= this.sHeap.IntSlice[0] {
 		heap.Push(this.sHeap, num)
 	} else {
 		heap.Push(this.bHeap, num)
 	}
 
+	// 调整两个堆中元素的数量，使得小顶堆的元素个数不超过大顶堆的元素个数加1
 	if this.sHeap.Len() > this.bHeap.Len()+1 {
 		heap.Push(this.bHeap, heap.Pop(this.sHeap).(int))
 	} else if this.bHeap.Len() > this.sHeap.Len() {

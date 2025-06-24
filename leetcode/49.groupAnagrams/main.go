@@ -4,7 +4,7 @@ import "fmt"
 
 // https://leetcode.cn/problems/group-anagrams/description/
 
-func groupAnagrams(strs []string) [][]string {
+func groupAnagrams1(strs []string) [][]string {
 	var res [][]string = make([][]string, 0)
 	if len(strs) == 0 {
 		return res
@@ -40,6 +40,36 @@ func groupAnagrams(strs []string) [][]string {
 		res = append(res, v)
 	}
 	return res
+}
+
+func groupAnagrams(strs []string) [][]string {
+	res := make([][]string, 0)
+	wordHash := map[string]int{}
+	for _, word := range strs {
+		reorderedWord := reorderWord(word)
+		if index, ok := wordHash[reorderedWord]; !ok {
+			res = append(res, []string{word})
+			wordHash[reorderedWord] = len(res) - 1
+		} else {
+			res[index] = append(res[index], word)
+		}
+	}
+	return res
+}
+
+func reorderWord(src string) string {
+	if len(src) == 0 {
+		return ""
+	}
+	srcBytes := []byte(src)
+	for end := len(srcBytes) - 1; end >= 1; end-- {
+		for start := 0; start < end; start++ {
+			if srcBytes[start] > srcBytes[start+1] {
+				srcBytes[start], srcBytes[start+1] = srcBytes[start+1], srcBytes[start]
+			}
+		}
+	}
+	return string(srcBytes)
 }
 
 func main() {
