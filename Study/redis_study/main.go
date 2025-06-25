@@ -10,26 +10,25 @@ import (
 func main() {
 	redisClient := InitRedis()
 	ctx := context.Background()
-	if _, err := redisClient.Set(ctx, "key", "value", 300*time.Second).Result(); err != nil {
-		panic(err)
-	}
 
-	data := make(map[string]interface{})
-	data["name"] = "黑马产品"
-	data["price"] = 100
-	data["stock"] = 1000
-	vals, err := redisClient.HMSet(ctx, "heima:product:1", data).Result()
+	success, err := redisClient.SetNX(ctx, "lock", "locked", 10*time.Second).Result()
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(vals)
+	if success {
+		fmt.Println("locked")
+	} else {
+		fmt.Println("lock already exists")
+	}
 
-	value, err := redisClient.HGetAll(ctx, "heima:product:1").Result()
+	code, err := redisClient.Del(ctx, "lock").Result()
 	if err != nil {
 		panic(err)
 	}
-	for key, v := range value {
-		fmt.Println(key, v)
+	if code > 0 {
+		fmt.Println("lock released")
+	} else {
+		fmt.Println("lock not found")
 	}
 }
 

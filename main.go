@@ -1,16 +1,20 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
+	"time"
 )
 
+func spawnGoroutine() {
+	go func() {
+		time.Sleep(2 * time.Second)
+		fmt.Println("Goroutine done")
+	}()
+	fmt.Println("spawnGoroutine returned")
+}
+
 func main() {
-	str := "测试"
-	bytes, err := json.Marshal(str)
-	if err != nil {
-		fmt.Println("序列化失败:", err)
-		return
-	}
-	fmt.Println(string(bytes))
+	spawnGoroutine()
+	time.Sleep(3 * time.Second)
+	fmt.Println("main done")
 }
