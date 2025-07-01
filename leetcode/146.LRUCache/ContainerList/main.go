@@ -17,7 +17,7 @@ func Constructor(capacity int) LRUCache {
 }
 
 func (c *LRUCache) Get(key int) int {
-	if node, ok := c.keyToNode[key]; ok { // 没有这本书
+	if node, ok := c.keyToNode[key]; ok { // 有这本书
 		c.list.MoveToFront(node) // 把这本书放在最上面
 		return node.Value.(entry).value
 	} else {

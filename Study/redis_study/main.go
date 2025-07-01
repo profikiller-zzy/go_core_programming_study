@@ -1,35 +1,36 @@
 package main
 
 import (
-	"context"
 	"fmt"
-	"github.com/redis/go-redis/v9"
 	"time"
+
+	"github.com/nacos-group/nacos-sdk-go/v2/inner/uuid"
+	"github.com/redis/go-redis/v9"
+
+	"go_core_programming/Study/redis_study/redis_lock"
 )
 
 func main() {
 	redisClient := InitRedis()
-	ctx := context.Background()
-
-	success, err := redisClient.SetNX(ctx, "lock", "locked", 10*time.Second).Result()
+	uid, err := uuid.NewV4()
 	if err != nil {
-		panic(err)
+		fmt.Println("Error generating UUID:", err)
+		return
 	}
-	if success {
-		fmt.Println("locked")
-	} else {
-		fmt.Println("lock already exists")
-	}
-
-	code, err := redisClient.Del(ctx, "lock").Result()
+	redisLock := redis_lock.NewSimpleRedisLock("order", uid.String(), redisClient)
+	ok, err := redisLock.TryLock("123456", 10)
 	if err != nil {
-		panic(err)
+		fmt.Println("Error trying to lock:", err)
+		return
 	}
-	if code > 0 {
-		fmt.Println("lock released")
-	} else {
-		fmt.Println("lock not found")
+	if !ok {
+		fmt.Println("Failed to acquire lock")
+		return
 	}
+	time.Sleep(time.Second * 2)
+
+	err = redisLock.Unlock("123456")
+	fmt.Println("成功释放锁")
 }
 
 func InitRedis() *redis.Client {

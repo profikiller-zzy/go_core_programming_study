@@ -14,11 +14,11 @@ func reverseKGroup(head *ListNode, k int) *ListNode {
 	if k == 1 {
 		return head
 	}
-	var (
-		pre *ListNode = &ListNode{Val: -1,
-			Next: head}
-		trueHead *ListNode = pre
-	)
+	dummy := &ListNode{
+		Val:  -1,
+		Next: head,
+	}
+	prev := dummy
 	curGroupHead := head
 
 	// 先检查剩余需要处理的节点的个数是否大于group长度
@@ -26,14 +26,14 @@ func reverseKGroup(head *ListNode, k int) *ListNode {
 		var nextGroupHead *ListNode = curGroupHead
 		for i := 0; i < k; i++ {
 			if nextGroupHead == nil { // 长度不够,直接返回
-				return trueHead.Next
+				return dummy.Next
 			}
 			nextGroupHead = nextGroupHead.Next
 		}
 		groupHead, groupTail := reverseGroup(curGroupHead, k)
-		pre.Next = groupHead
+		prev.Next = groupHead
 		groupTail.Next = nextGroupHead
-		pre = groupTail
+		prev = groupTail
 		curGroupHead = nextGroupHead
 	}
 }
@@ -42,8 +42,7 @@ func reverseKGroup(head *ListNode, k int) *ListNode {
 func reverseGroup(head *ListNode, k int) (*ListNode, *ListNode) {
 	var (
 		cur       *ListNode = head
-		newNode   *ListNode = head.Next
-		phead     *ListNode = nil
+		prev      *ListNode = nil
 		groupHead *ListNode = nil
 		groupTail *ListNode = head
 	)
@@ -51,12 +50,10 @@ func reverseGroup(head *ListNode, k int) (*ListNode, *ListNode) {
 		if i == k-1 {
 			groupHead = cur
 		}
-		cur.Next = phead
-		phead = cur
-		cur = newNode
-		if newNode.Next != nil {
-			newNode = newNode.Next
-		}
+		next := cur.Next
+		cur.Next = prev
+		prev = cur
+		cur = next
 	}
 	return groupHead, groupTail
 }
