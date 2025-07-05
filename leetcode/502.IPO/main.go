@@ -46,11 +46,11 @@ func findMaximizedCapital(k int, w int, profits []int, capital []int) int {
 	// 该算法的核心思想就是每次从当前可用的项目中选择利润最大的项目进行投资，直到达到k次投资或没有可用项目为止。
 	// 那么当前可用的项目就是所需的资本小于等于当前所持有的资本的项目
 	for index := 0; k > 0; k-- {
-		for index < n && pairs[index].capital <= w {
+		for index < n && pairs[index].capital <= w { // 将当前没有添加过并且所需资本小于等于当前资本的项目添加到大根堆
 			heap.Push(maxHeap, pairs[index].profit)
 			index++
 		}
-		if maxHeap.Len() == 0 {
+		if maxHeap.Len() == 0 { // 没有可用的项目了
 			break
 		} else {
 			w += heap.Pop(maxHeap).(int)
