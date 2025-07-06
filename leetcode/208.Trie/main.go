@@ -26,8 +26,6 @@ func (this *Trie) Insert(word string) {
 		if _, ok := cur.children[ch]; !ok { // 没有则添加
 			child = &Trie{byte: ch}
 			cur.children[ch] = child
-		} else { // 有的话直接取
-			child = cur.children[ch]
 		}
 		cur = cur.children[ch]
 	}
