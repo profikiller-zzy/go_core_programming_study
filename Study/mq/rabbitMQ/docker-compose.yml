@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: mq
+    hostname: mq
+    environment:
+      RABBITMQ_DEFAULT_USER: itheima
+      RABBITMQ_DEFAULT_PASS: 123321
+    ports:
+      - "5672:5672"     # RabbitMQ 消息通信端口
+      - "15672:15672"   # Web 管理界面端口
+    volumes:
+      - mq-plugins:/plugins
+    networks:
+      - hmall
+
+volumes:
+  mq-plugins:
+
+networks:
+  hmall:
+    driver: bridge

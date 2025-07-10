@@ -73,6 +73,53 @@ func mergeKLists(lists []*ListNode) *ListNode {
 	return lists[0]
 }
 
+func mergeKLists1(lists []*ListNode) *ListNode {
+	if len(lists) == 0 {
+		return nil
+	} else if len(lists) == 1 {
+		return lists[0]
+	}
+	// 不断两两合并直到最后合并为一个长链表
+	for len(lists) > 1 {
+		var newLists []*ListNode
+		for i := 0; i < len(lists); i += 2 {
+			if i+1 < len(lists) { // 假如这一轮有两个列表
+				merged := merge(lists[i], lists[i+1])
+				newLists = append(newLists, merged)
+			} else { // 如果只有一个链表，直接添加不用合并
+				newLists = append(newLists, lists[i])
+			}
+		}
+		lists = newLists
+	}
+
+	return lists[0]
+}
+
+func merge(cur1 *ListNode, cur2 *ListNode) *ListNode {
+	if cur1 == nil && cur2 == nil {
+		return nil
+	}
+	dummy := &ListNode{}
+	cur := dummy
+	for cur1 != nil && cur2 != nil {
+		if cur1.Val < cur2.Val {
+			cur.Next = cur1
+			cur1 = cur1.Next
+		} else {
+			cur.Next = cur2
+			cur2 = cur2.Next
+		}
+		cur = cur.Next
+	}
+	if cur1 != nil {
+		cur.Next = cur1
+	} else {
+		cur.Next = cur2
+	}
+	return dummy.Next
+}
+
 func main() {
 
 }

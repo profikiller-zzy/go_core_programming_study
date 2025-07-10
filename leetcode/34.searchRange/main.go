@@ -27,6 +27,7 @@ func searchRange(nums []int, target int) []int {
 		res[0] = -1
 	}
 
+	// 第二次二分循环结束时，left指向的是第一个大于target的元素位置（或者是越界），所right是最后一个大雨等于target的元素位置
 	left, right = 0, len(nums)-1
 	for left <= right {
 		mid = (left + right) / 2
@@ -46,5 +47,5 @@ func searchRange(nums []int, target int) []int {
 
 func main() {
 	var nums []int = []int{5, 7, 7, 8, 8, 10}
-	fmt.Println(searchRange(nums, 8))
+	fmt.Println(searchRange(nums, 7))
 }

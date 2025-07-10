@@ -1,6 +1,8 @@
 package main
 
-func permute(nums []int) [][]int {
+import "fmt"
+
+func permute1(nums []int) [][]int {
 	isVisited := make([]bool, len(nums))
 	var result [][]int
 	var permuteHelper func([]int)
@@ -25,4 +27,39 @@ func permute(nums []int) [][]int {
 
 	permuteHelper([]int{})
 	return result
+}
+
+func permute(nums []int) [][]int {
+	var res [][]int
+	if len(nums) == 0 {
+		return res
+	}
+
+	var path []int
+	isVisited := make([]bool, len(nums))
+	var dfs func(int)
+	dfs = func(index int) {
+		if index == len(nums) {
+			newPath := make([]int, len(path))
+			copy(newPath, path)
+			res = append(res, newPath)
+			return
+		}
+		for i := 0; i < len(nums); i++ {
+			if !isVisited[i] {
+				path = append(path, nums[i])
+				isVisited[i] = true
+				dfs(index + 1)
+				isVisited[i] = false
+				path = path[:len(path)-1]
+			}
+		}
+	}
+	dfs(0)
+	return res
+}
+
+func main() {
+	nums := []int{1, 2, 3}
+	fmt.Println(permute(nums))
 }
