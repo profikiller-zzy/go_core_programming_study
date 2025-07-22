@@ -1,6 +1,6 @@
 package main
 
-func maxProfit(prices []int) int {
+func maxProfit1(prices []int) int {
 	if len(prices) <= 1 {
 		return 0
 	}
@@ -17,4 +17,16 @@ func maxProfit(prices []int) int {
 		return 0
 	}
 	return maxP
+}
+
+func maxProfit(prices []int) int {
+	if len(prices) <= 0 {
+		return 0
+	}
+	buy, sell := -prices[0], 0
+	for index := 1; index < len(prices); index++ {
+		buy = max(buy, -prices[index])
+		sell = max(sell, buy+prices[index])
+	}
+	return sell
 }
