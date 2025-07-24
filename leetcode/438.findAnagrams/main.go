@@ -8,15 +8,15 @@ func findAnagrams(s string, p string) []int {
 		return res
 	}
 
-	charHash := make(map[rune]int)
-	for _, char := range p {
-		charHash[char]--
+	charHash := make(map[byte]int)
+	for index := 0; index < len(p); index++ {
+		charHash[p[index]]--
 	}
 	// 初始化滑动窗口
 	for i := 0; i < len(p); i++ {
-		charHash[rune(s[i])]++
-		if charHash[rune(s[i])] == 0 {
-			delete(charHash, rune(s[i]))
+		charHash[s[i]]++
+		if charHash[s[i]] == 0 {
+			delete(charHash, s[i])
 		}
 	}
 	if len(charHash) == 0 {
@@ -25,11 +25,11 @@ func findAnagrams(s string, p string) []int {
 
 	for index := 1; index <= len(s)-len(p); index++ {
 		// 滑动窗口向前移动一个字符
-		prevChar := rune(s[index-1])
-		currChar := rune(s[index+len(p)-1])
+		prevChar := s[index-1]
+		currChar := s[index+len(p)-1]
 		charHash[prevChar]--
 		if charHash[prevChar] == 0 {
-			delete(charHash, rune(prevChar))
+			delete(charHash, prevChar)
 		}
 		charHash[currChar]++
 		if charHash[currChar] == 0 {
