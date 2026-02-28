@@ -1,41 +1,62 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
+	"context"
 	"log"
 	"time"
+
+	"github.com/cloudwego/hertz/pkg/app"
+	"github.com/cloudwego/hertz/pkg/app/server"
 )
 
-// Logger 自定义中间件
-func Logger() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Abort()
-		t := time.Now()
+// TimingMiddleware 统计接口执行时间的中间件
+func TimingMiddleware() app.HandlerFunc {
+	return func(ctx context.Context, c *app.RequestContext) {
+		// 记录请求开始时间
+		start := time.Now()
 
-		// 在请求前设置变量
-		c.Set("example", "12345")
+		// 获取请求信息
+		method := string(c.Method())
+		path := string(c.Path())
+		clientIP := c.ClientIP()
 
-		c.Next() // 处理后续中间件和路由
+		log.Printf("[%s] %s %s - 开始处理请求", method, path, clientIP)
 
-		// 请求后计算耗时
-		latency := time.Since(t)
-		log.Print("请求耗时:", latency)
+		// 继续处理后续中间件和路由处理函数
+		c.Next(ctx)
 
-		// 获取响应状态码
-		status := c.Writer.Status()
-		log.Println("状态码:", status)
+		// 计算执行时间
+		duration := time.Since(start)
+		status := c.Response.StatusCode()
+
+		// 记录请求完成信息
+		log.Printf("[%s] %s %s - 状态码: %d, 执行时间: %v",
+			method, path, clientIP, status, duration)
+
+		// 可以根据执行时间进行不同的处理
+		if duration > 1*time.Second {
+			log.Printf("⚠️  慢请求警告: %s %s 执行时间 %v 超过 1 秒", method, path, duration)
+		}
 	}
 }
 
 func main() {
-	r := gin.New()
-	r.Use(Logger()) // 应用自定义中间件
+	// 创建 Hertz 服务器
+	h := server.Default(server.WithHostPorts(":8080"))
 
-	r.GET("/test", func(c *gin.Context) {
-		// 获取中间件设置的变量
-		example := c.MustGet("example").(string)
-		log.Println("中间件传递的值:", example) // 输出 "12345"
+	// 使用执行时间统计中间件
+	h.Use(TimingMiddleware())
+	// 或者使用高级版本
+
+	// 定义路由
+	h.GET("/", func(ctx context.Context, c *app.RequestContext) {
+		// 模拟一些处理时间
+		time.Sleep(100 * time.Millisecond)
+		c.JSON(200, map[string]interface{}{
+			"message":   "Hello Hertz!",
+			"timestamp": time.Now(),
+		})
 	})
 
-	r.Run(":8080")
+	h.Spin()
 }
