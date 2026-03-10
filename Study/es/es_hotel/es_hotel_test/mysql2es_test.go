@@ -8,7 +8,8 @@ import (
 	"testing"
 )
 
-func mysql2es_test(t *testing.T) {
+// TestMysql2es 测试从MySQL迁移数据到ES
+func TestMysql2es(t *testing.T) {
 	// 初始化ES客户端
 	if err := es_hotel.InitElastic(); err != nil {
 		log.Fatalf("初始化ES失败: %v", err)

@@ -6,7 +6,7 @@ func wordBreak(s string, wordDict []string) bool {
 		wordSet[word] = true
 	}
 
-	// dp[i] = true 表示 s[:i] 可以被拆分，长度为i的字符串
+	// dp[i] = true 表示 s[:i] 可以被拆分
 	dp := make([]bool, len(s)+1)
 	dp[0] = true
 
@@ -22,7 +22,7 @@ func wordBreak(s string, wordDict []string) bool {
 }
 
 func main() {
-	s := "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab"
+	s := "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 	wordDict := []string{"a", "aa", "aaa", "aaaa", "aaaaa", "aaaaaa", "aaaaaaa", "aaaaaaaa", "aaaaaaaaaa"}
 	println(wordBreak(s, wordDict))
 }

@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 
-func findAnagrams(s string, p string) []int {
+func findAnagrams1(s string, p string) []int {
 	res := make([]int, 0)
 	if len(s) < len(p) {
 		return res
@@ -37,6 +37,31 @@ func findAnagrams(s string, p string) []int {
 		}
 		if len(charHash) == 0 {
 			res = append(res, index)
+		}
+	}
+	return res
+}
+
+func findAnagrams(s string, p string) []int {
+	res := make([]int, 0)
+	sLen, pLen := len(s), len(p)
+	if sLen < pLen {
+		return res
+	}
+	var sChar, pChar [26]int
+	for i := 0; i < pLen; i++ {
+		sChar[s[i]-'a']++
+		pChar[p[i]-'a']++
+	}
+	if sChar == pChar {
+		res = append(res, 0)
+	}
+
+	for i := range s[:sLen-pLen] {
+		sChar[s[i]-'a']--
+		sChar[s[i+pLen]-'a']++
+		if sChar == pChar {
+			res = append(res, i+1)
 		}
 	}
 	return res

@@ -7,20 +7,22 @@ func lengthOfLongestSubstring(s string) int {
 	maxArea := 0
 	left, right := 0, 0
 	for index := 0; index < len(s); index++ {
+		ch := s[index]
 		if _, ok := curCharSet[s[index]]; !ok { // 当前滑动窗口中没有这个字符
 			right = index
-			curCharSet[s[index]] = index
+			curCharSet[ch] = index
 			curArea := right - left + 1
 			if curArea > maxArea {
 				maxArea = curArea
 			}
-		} else { // 当前滑动窗口中已经有这个字符了
+		} else {
+			// 当前滑动窗口中已经有这个字符了
 			// 将滑动窗口起始到这个字符的位置移出(可以直接移出就是因为他们的数量一定是1)
-			thisCharIndex := curCharSet[s[index]]
+			thisCharIndex := curCharSet[ch]
 			for i := left; i <= thisCharIndex-1; i++ {
 				delete(curCharSet, s[i])
 			}
-			curCharSet[s[index]] = index
+			curCharSet[ch] = index
 			left = thisCharIndex + 1
 		}
 	}

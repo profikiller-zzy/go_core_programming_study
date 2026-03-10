@@ -6,116 +6,40 @@ type ListNode struct {
 	Next *ListNode
 }
 
-// https://leetcode.cn/problems/merge-k-sorted-lists/description
-
 func mergeKLists(lists []*ListNode) *ListNode {
-	var res *ListNode
-	if len(lists) == 0 {
-		return res
-	} else if len(lists) == 1 {
+	n := len(lists)
+	if n == 0 {
+		return nil
+	} else if n == 1 {
 		return lists[0]
 	}
-
-	// 归并两个链表，返回归并后的头节点
-	var merge2Lists func(*ListNode, *ListNode) *ListNode
-	merge2Lists = func(node1 *ListNode, node2 *ListNode) *ListNode {
-		if node1 == nil {
-			return node2
-		} else if node2 == nil {
-			return node1
-		}
-		var resHead, resTail *ListNode
-
-		// 初始化结果链表的头节点
-		if node1.Val <= node2.Val {
-			resHead = node1
-			node1 = node1.Next
-		} else {
-			resHead = node2
-			node2 = node2.Next
-		}
-		resTail = resHead
-
-		for node1 != nil && node2 != nil {
-			if node1.Val <= node2.Val {
-				resTail.Next = node1
-				node1 = node1.Next
-			} else {
-				resTail.Next = node2
-				node2 = node2.Next
-			}
-			resTail = resTail.Next
-		}
-
-		// 将剩余的列表处理了
-		if node1 == nil {
-			resTail.Next = node2
-		} else {
-			resTail.Next = node1
-		}
-		return resHead
-	}
-
 	// 不断两两合并直到最后合并为一个长链表
-	for len(lists) > 1 {
-		var newLists []*ListNode
-		for i := 0; i < len(lists); i += 2 {
-			if i+1 < len(lists) { // 假如这一轮有两个列表
-				merged := merge2Lists(lists[i], lists[i+1])
-				newLists = append(newLists, merged)
-			} else { // 如果只有一个链表，直接添加不用合并
-				newLists = append(newLists, lists[i])
-			}
+	for interval := 1; interval < n; interval <<= 1 {
+		for i := 0; i < n-interval; i += 2 * interval {
+			lists[i] = merge(lists[i], lists[i+interval])
 		}
-		lists = newLists
 	}
 
 	return lists[0]
 }
 
-func mergeKLists1(lists []*ListNode) *ListNode {
-	if len(lists) == 0 {
-		return nil
-	} else if len(lists) == 1 {
-		return lists[0]
-	}
-	// 不断两两合并直到最后合并为一个长链表
-	for len(lists) > 1 {
-		var newLists []*ListNode
-		for i := 0; i < len(lists); i += 2 {
-			if i+1 < len(lists) { // 假如这一轮有两个列表
-				merged := merge(lists[i], lists[i+1])
-				newLists = append(newLists, merged)
-			} else { // 如果只有一个链表，直接添加不用合并
-				newLists = append(newLists, lists[i])
-			}
-		}
-		lists = newLists
-	}
-
-	return lists[0]
-}
-
-func merge(cur1 *ListNode, cur2 *ListNode) *ListNode {
-	if cur1 == nil && cur2 == nil {
-		return nil
-	}
+func merge(l1 *ListNode, l2 *ListNode) *ListNode {
 	dummy := &ListNode{}
 	cur := dummy
-	for cur1 != nil && cur2 != nil {
-		if cur1.Val < cur2.Val {
-			cur.Next = cur1
-			cur1 = cur1.Next
+	for l1 != nil && l2 != nil {
+		if l1.Val < l2.Val {
+			cur.Next = l1
+			l1 = l1.Next
 		} else {
-			cur.Next = cur2
-			cur2 = cur2.Next
+			cur.Next = l2
+			l2 = l2.Next
 		}
 		cur = cur.Next
 	}
-	if cur1 != nil {
-		cur.Next = cur1
+	if l1 != nil {
+		cur.Next = l1
 	} else {
-		cur.Next = cur2
+		cur.Next = l2
 	}
 	return dummy.Next
 }

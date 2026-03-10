@@ -2,8 +2,6 @@ package main
 
 import "fmt"
 
-// https://leetcode.cn/problems/rotate-image/description
-
 func rotate(matrix [][]int) {
 	var n, depth int
 	n = len(matrix)

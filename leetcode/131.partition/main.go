@@ -3,57 +3,47 @@ package main
 import "fmt"
 
 func partition(s string) [][]string {
-	if len(s) == 0 {
+	n := len(s)
+	if n == 0 {
 		return [][]string{}
 	}
-	
+
+	// DP 预处理：dp[i][j] 表示 s[i:j+1] 是否是回文串
+	// 使用一维切片数组，Go 中 [][]bool 实际上是多个独立的一维数组
+	dp := make([][]bool, n)
+	for i := range dp {
+		dp[i] = make([]bool, n)
+	}
+	for j := 0; j < n; j++ { // 右边界增长
+		for i := 0; i <= j; i++ {
+			// 如果首尾字符相同，且中间部分也是回文（或长度<=2），则是回文
+			dp[i][j] = s[i] == s[j] && (j-i <= 2 || dp[i+1][j-1])
+		}
+	}
+
 	var result [][]string
-	// 动态规划数组，dp[i][j]表示s[i:j+1]是否是回文串
-	var dp = make([][]bool, len(s))
-	for i := 0; i < len(s); i++ {
-		dp[i] = make([]bool, len(s))
-	}
-	for i := 0; i < len(s); i++ {
-		dp[i][i] = true // 单个字符是回文串
-	}
-	// 动态规划预处理，判断是否是回文串
-	for length := 1; length <= len(s); length++ {
-		for start := 0; start+length-1 < len(s); start++ {
-			end := start + length - 1
-			if s[start] == s[end] && (length <= 2 || dp[start+1][end-1]) {
-				dp[start][end] = true
-			}
-		}
-	}
-
-	isPalindrome := func(start, end int) bool {
-		// 判断s[start:end+1]是否是回文串
-		if start > end {
-			return false
-		} else {
-			return dp[start][end]
-		}
-	}
-
-	var dfs func(int, []string)
-	dfs = func(start int, path []string) {
-		if start == len(s) {
-			copyPath := make([]string, len(path))
-			copy(copyPath, path)
-			result = append(result, copyPath) // 递归结束，添加到结果中
+	var path []string
+	var dfs func(start int)
+	dfs = func(start int) {
+		if start == n {
+			// 必须复制 path，因为 path 是引用类型，后续回溯会修改它
+			temp := make([]string, len(path))
+			copy(temp, path)
+			result = append(result, temp)
 			return
 		}
-		// start表示当前的起始位置， path表示已经分割的回文串
-		for i := start; i < len(s); i++ {
-			if isPalindrome(start, i) {
-				// 递归调用
-				path = append(path, s[start:i+1])
-				dfs(i+1, path)
-				path = path[:len(path)-1] // 回溯
+
+		// 尝试所有可能的结束位置
+		for end := start; end < n; end++ {
+			if dp[start][end] {
+				path = append(path, s[start:end+1])
+				dfs(end + 1)
+				path = path[:len(path)-1]
 			}
 		}
 	}
-	dfs(0, []string{})
+
+	dfs(0)
 	return result
 }
 

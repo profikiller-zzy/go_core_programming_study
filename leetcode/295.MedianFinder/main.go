@@ -16,7 +16,7 @@ func (h *minHeap) Pop() interface{} {
 	old := h.IntSlice
 	n := len(old)
 	x := old[n-1]
-	h.IntSlice = old[0 : n-1]
+	h.IntSlice = old[:n-1]
 	return x
 }
 

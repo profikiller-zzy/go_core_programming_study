@@ -10,7 +10,7 @@ type ListNode struct {
 	Next *ListNode
 }
 
-func reverseKGroup(head *ListNode, k int) *ListNode {
+func reverseKGroup1(head *ListNode, k int) *ListNode {
 	if k == 1 {
 		return head
 	}
@@ -23,7 +23,7 @@ func reverseKGroup(head *ListNode, k int) *ListNode {
 
 	// 先检查剩余需要处理的节点的个数是否大于group长度
 	for {
-		var nextGroupHead *ListNode = curGroupHead
+		nextGroupHead := curGroupHead
 		for i := 0; i < k; i++ {
 			if nextGroupHead == nil { // 长度不够,直接返回
 				return dummy.Next
@@ -56,6 +56,35 @@ func reverseGroup(head *ListNode, k int) (*ListNode, *ListNode) {
 		cur = next
 	}
 	return groupHead, groupTail
+}
+
+func reverseKGroup(head *ListNode, k int) *ListNode {
+	if k == 1 {
+		return head
+	}
+	dummy := &ListNode{Next: head}
+	prev := dummy
+
+	for {
+		tail := prev
+		for i := 0; i < k; i++ {
+			tail = tail.Next
+			if tail == nil {
+				return dummy.Next // 不够 k 个，直接返回
+			}
+		}
+
+		// 使用头插法反转当前组 [prev.Next ... tail]
+		cur := prev.Next
+		for i := 0; i < k-1; i++ { // 进行 k-1 次插入操作
+			next := cur.Next
+			cur.Next = next.Next
+			next.Next = prev.Next
+			prev.Next = next
+		}
+
+		prev = cur
+	}
 }
 
 func main() {

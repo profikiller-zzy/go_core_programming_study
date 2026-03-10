@@ -57,7 +57,7 @@ func copyRandomList(head *Node) *Node {
 	newHead := head.Next
 	for cur := head; cur != nil; cur = cur.Next {
 		next := cur.Next
-		cur.Next = cur.Next.Next
+		cur.Next = next.Next
 		if next.Next != nil {
 			next.Next = next.Next.Next
 		}

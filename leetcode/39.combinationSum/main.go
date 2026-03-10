@@ -1,8 +1,11 @@
 package main
 
-import "sort"
+import (
+	"fmt"
+	"sort"
+)
 
-func combinationSum(candidates []int, target int) [][]int {
+func combinationSum1(candidates []int, target int) [][]int {
 	sort.Ints(candidates) // 关键点1：排序用于剪枝和去重
 	var path []int
 	var result [][]int
@@ -33,4 +36,35 @@ func combinationSum(candidates []int, target int) [][]int {
 	return result
 }
 
-func main() {}
+func combinationSum(candidates []int, target int) [][]int {
+	sort.Ints(candidates)
+	need := target
+	path := make([]int, 0, len(candidates))
+	var result [][]int
+	var dfs func(start int)
+	dfs = func(start int) {
+		if need == 0 {
+			result = append(result, append([]int{}, path...))
+			return
+		}
+		for i := start; i < len(candidates); i++ {
+			if need < candidates[i] {
+				return
+			}
+			need -= candidates[i]
+			path = append(path, candidates[i])
+			dfs(i)
+			path = path[:len(path)-1]
+			need += candidates[i]
+		}
+	}
+	dfs(0)
+	return result
+}
+
+func main() {
+	candidates := []int{2, 3, 6, 7}
+	target := 9
+	result := combinationSum(candidates, target)
+	fmt.Println(result)
+}

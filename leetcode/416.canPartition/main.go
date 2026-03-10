@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-func canPartition(nums []int) bool {
+func canPartition1(nums []int) bool {
 	var (
 		sum    int // 数组和
 		maxNum int // 最大数
@@ -47,7 +47,7 @@ func canPartition(nums []int) bool {
 	return dp[n-1][target]
 }
 
-func canPartition1(nums []int) bool {
+func canPartition(nums []int) bool {
 	sum := 0
 	for _, num := range nums {
 		sum += num

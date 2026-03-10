@@ -9,7 +9,7 @@ type Hotel struct {
 	Score     float64 `json:"score" db:"score"`
 	Brand     string  `json:"brand" db:"brand"`
 	City      string  `json:"city" db:"city"`
-	StarName  string  `json:"star_name" db:"star_name"`
+	StarName  string  `json:"starName" db:"star_name"`  // 改为 starName
 	Business  string  `json:"business" db:"business"`
 	Latitude  string  `json:"latitude" db:"latitude"`
 	Longitude string  `json:"longitude" db:"longitude"`

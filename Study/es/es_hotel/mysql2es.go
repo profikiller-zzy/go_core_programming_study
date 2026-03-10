@@ -119,7 +119,7 @@ func CreateHotelIndex() error {
 
 // BulkIndexHotels 批量导入酒店数据到ES
 func BulkIndexHotels(hotels []Hotel) error {
-	const batchSize = 100 // 每批处理100条数据
+	const batchSize = 50 // 每批处理50条数据
 
 	for i := 0; i < len(hotels); i += batchSize {
 		end := i + batchSize

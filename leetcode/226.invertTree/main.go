@@ -7,19 +7,31 @@ type TreeNode struct {
 	Right *TreeNode
 }
 
+func invertTree1(root *TreeNode) *TreeNode {
+	if root == nil {
+		return nil
+	}
+	root.Left, root.Right = root.Right, root.Left
+	invertTree1(root.Left)
+	invertTree1(root.Right)
+	return root
+}
+
 func invertTree(root *TreeNode) *TreeNode {
 	if root == nil {
 		return nil
 	}
-	invertTreeNode(root)
-	return root
-}
-
-func invertTreeNode(root *TreeNode) {
-	if root == nil {
-		return
+	stack := []*TreeNode{root}
+	for len(stack) > 0 {
+		node := stack[len(stack)-1]
+		stack = stack[:len(stack)-1]
+		node.Left, node.Right = node.Right, node.Left
+		if node.Left != nil {
+			stack = append(stack, node.Left)
+		}
+		if node.Right != nil {
+			stack = append(stack, node.Right)
+		}
 	}
-	root.Left, root.Right = root.Right, root.Left
-	invertTreeNode(root.Left)
-	invertTreeNode(root.Right)
+	return root
 }

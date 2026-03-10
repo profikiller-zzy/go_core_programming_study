@@ -69,8 +69,10 @@ func maxSlidingWindow(nums []int, k int) []int {
 }
 
 func main() {
-	nums := []int{1, 3, -1, -3, 5, 3, 6, 7}
-	k := 3
+	//nums := []int{1, 3, -1, -3, 5, 3, 6, 7}
+	//k := 3[]int{1, 3, -1, -3, 5, 3, 6, 7}
+	nums := []int{1, -1}
+	k := 1
 	result := maxSlidingWindow(nums, k)
 	fmt.Println(result)
 }

@@ -1,26 +1,30 @@
 package main
 
-func subsets(nums []int) [][]int {
-	var result [][]int
-	result = append(result, []int{})
-	if len(nums) == 0 {
-		return result
-	}
+import "fmt"
 
-	var dfs func([]int, int)
-	dfs = func(curRes []int, index int) {
-		for i := index; i < len(nums); i++ {
-			// 选择当前元素
-			curRes = append(curRes, nums[i])
-			result = append(result, append([]int{}, curRes...))
-			// 递归选择下一个元素
-			dfs(curRes, i+1)
-			// 回溯，去掉当前元素
-			curRes = curRes[:len(curRes)-1]
+func subsets(nums []int) [][]int {
+	result := make([][]int, 0, 1<<len(nums)) // 预分配容量：2^N
+	path := make([]int, 0, len(nums))        // 预分配 path 容量
+
+	var dfs func(start int)
+	dfs = func(start int) {
+		result = append(result, append([]int{}, path...))
+
+		for i := start; i < len(nums); i++ {
+			// 选择
+			path = append(path, nums[i])
+			// 递归
+			dfs(i + 1)
+			// 回溯 (移除最后一个元素)
+			path = path[:len(path)-1]
 		}
 	}
-	dfs([]int{}, 0)
+
+	dfs(0)
 	return result
 }
 
-func main() {}
+func main() {
+	nums := []int{1, 2, 3}
+	fmt.Println(subsets(nums))
+}

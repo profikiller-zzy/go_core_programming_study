@@ -3,16 +3,14 @@ package main
 import "fmt"
 
 type Trie struct {
-	byte     byte           // 当前节点存储的字符
+	bt       byte           // 当前节点存储的字符
 	children map[byte]*Trie // 子节点
 	isEnd    bool
 }
 
 func Constructor() Trie {
 	// 返回根节点
-	return Trie{
-		byte: byte('0'),
-	}
+	return Trie{bt: byte('0')}
 }
 
 func (this *Trie) Insert(word string) {
@@ -24,7 +22,7 @@ func (this *Trie) Insert(word string) {
 		}
 		var child *Trie
 		if _, ok := cur.children[ch]; !ok { // 没有则添加
-			child = &Trie{byte: ch}
+			child = &Trie{bt: ch}
 			cur.children[ch] = child
 		}
 		cur = cur.children[ch]
@@ -39,18 +37,12 @@ func (this *Trie) Search(word string) bool {
 		if cur.children == nil {
 			return false
 		}
-
-		if node, ok := cur.children[ch]; ok {
-			cur = node
-		} else { // 没有返回false
+		if _, ok := cur.children[ch]; !ok {
 			return false
 		}
+		cur = cur.children[ch]
 	}
-	if cur.isEnd {
-		return true
-	} else {
-		return false
-	}
+	return cur.isEnd
 }
 
 func (this *Trie) StartsWith(prefix string) bool {
@@ -60,7 +52,6 @@ func (this *Trie) StartsWith(prefix string) bool {
 		if cur.children == nil {
 			return false
 		}
-
 		if node, ok := cur.children[ch]; ok {
 			cur = node
 		} else { // 没有返回false

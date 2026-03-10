@@ -14,7 +14,7 @@ func levelOrder(root *TreeNode) [][]int {
 
 	result := make([][]int, 0)
 	currentLevel := []*TreeNode{root} // 用于存储当前这层的节点
-	for {
+	for len(currentLevel) > 0 {
 		nextLevel := make([]*TreeNode, 0)
 		currentLevelVal := make([]int, 0)
 		for _, node := range currentLevel {
@@ -27,10 +27,7 @@ func levelOrder(root *TreeNode) [][]int {
 			}
 		}
 		result = append(result, currentLevelVal)
-		if len(nextLevel) == 0 {
-			return result
-		} else {
-			currentLevel = nextLevel
-		}
+		currentLevel = nextLevel
 	}
+	return result
 }

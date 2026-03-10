@@ -1,9 +1,8 @@
 package main
 
-// https://leetcode.cn/problems/subarray-sum-equals-k/description
-// 参考leetcode题解： 前缀和加哈希表
 func subarraySum(nums []int, k int) int {
 	var count, preSum int
+	// preHash 记录某个前缀和的个数，key为该前缀和的值，value是该前缀和的个数
 	preHash := make(map[int]int)
 	preHash[0] = 1
 	for _, num := range nums {

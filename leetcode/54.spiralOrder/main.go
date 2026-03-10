@@ -2,7 +2,7 @@ package main
 
 // https://leetcode.cn/problems/spiral-matrix/description
 
-func spiralOrder(matrix [][]int) []int {
+func spiralOrder1(matrix [][]int) []int {
 	if len(matrix) == 0 || len(matrix[0]) == 0 {
 		return []int{}
 	}
@@ -36,6 +36,45 @@ func spiralOrder(matrix [][]int) []int {
 		}
 	}
 
+	return result
+}
+
+func spiralOrder(matrix [][]int) []int {
+	if len(matrix) == 0 || len(matrix[0]) == 0 {
+		return []int{}
+	}
+
+	var (
+		rowCount, colCount       = len(matrix), len(matrix[0])
+		result                   = make([]int, rowCount*colCount)
+		index                    = 0
+		left, right, top, bottom = 0, colCount - 1, 0, rowCount - 1
+	)
+
+	for left <= right && top <= bottom {
+		for col := left; col <= right; col++ {
+			result[index] = matrix[top][col]
+			index++
+		}
+		for row := top + 1; row <= bottom; row++ {
+			result[index] = matrix[row][right]
+			index++
+		}
+		if right > left && bottom > top { // 防止重复扫描底部和左边的部分
+			for col := right - 1; col >= left; col-- {
+				result[index] = matrix[bottom][col]
+				index++
+			}
+			for row := bottom - 1; row >= top+1; row-- {
+				result[index] = matrix[row][left]
+				index++
+			}
+		}
+		left++
+		right--
+		top++
+		bottom--
+	}
 	return result
 }
 

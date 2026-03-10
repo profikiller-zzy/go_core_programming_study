@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 // TreeNode Definition for a binary tree node.
 type TreeNode struct {
@@ -10,46 +13,30 @@ type TreeNode struct {
 }
 
 func maxPathSum(root *TreeNode) int {
-	// 以当前节点为根节点的最大路径和，也就是路径经过当前节点，并且当前节点的为该路径的根
-	// 那么这个最大的和就是当前节点的值加上左右子树的最大路径的和
-	if root == nil {
-		return 0
-	}
-	maxVal := root.Val
-	var downward func(*TreeNode)
-	downward = func(node *TreeNode) {
-		if node == nil {
-			return
-		}
-		var curVal int
-		curVal = node.Val + returnMaxPathSum(node.Left) + returnMaxPathSum(node.Right)
-		if curVal > maxVal {
-			maxVal = curVal
-		}
-		downward(node.Left)
-		downward(node.Right)
-	}
-	downward(root)
-	return maxVal
-}
+	maxSum := math.MinInt32              // 初始化为最小整数
+	var maxGain func(node *TreeNode) int // 计算以当前节点为根节点的单向最大路径和
 
-func returnMaxPathSum(root *TreeNode) int {
-	// 返回以当前节点为根节点的路径和
-	var maxVal int
-	var downward func(*TreeNode, int)
-	downward = func(node *TreeNode, curVal int) {
+	maxGain = func(node *TreeNode) int {
 		if node == nil {
-			return
+			return 0
 		}
-		curVal += node.Val
-		if curVal > maxVal {
-			maxVal = curVal
+
+		// 递归计算左右子树单向最大路径和（负值则忽略）
+		leftGain := max(0, maxGain(node.Left))
+		rightGain := max(0, maxGain(node.Right))
+
+		// 以当前节点为根的完整路径和（可能为最大值）
+		currentPath := node.Val + leftGain + rightGain
+		if currentPath > maxSum {
+			maxSum = currentPath
 		}
-		downward(node.Left, curVal)
-		downward(node.Right, curVal)
+
+		// 返回单向最大路径和（用于父节点计算）
+		return node.Val + max(leftGain, rightGain)
 	}
-	downward(root, 0)
-	return maxVal
+
+	maxGain(root)
+	return maxSum
 }
 
 func main() {

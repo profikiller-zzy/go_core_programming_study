@@ -20,6 +20,9 @@ func dfs(nums []int, left, right int) *TreeNode {
 	// 以升序序列的中间当作根节点
 	mid := (left + right) / 2
 	root := &TreeNode{Val: nums[mid]}
+	if left == right {
+		return root
+	}
 	root.Left = dfs(nums, left, mid-1)
 	root.Right = dfs(nums, mid+1, right)
 	return root

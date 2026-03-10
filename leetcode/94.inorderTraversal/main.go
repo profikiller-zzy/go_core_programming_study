@@ -34,7 +34,7 @@ func (stack *Stack) pop() *TreeNode {
 	return node
 }
 
-func inorderTraversal(root *TreeNode) []int {
+func inorderTraversal1(root *TreeNode) []int {
 	if root == nil {
 		return []int{}
 	}
@@ -52,4 +52,21 @@ func inorderTraversal(root *TreeNode) []int {
 		cur = cur.Right
 	}
 	return res
+}
+
+func inorderTraversal(root *TreeNode) []int {
+	result := make([]int, 0)
+	nodeStack := make([]*TreeNode, 0)
+	cur := root
+	for cur != nil || len(nodeStack) != 0 {
+		for cur != nil {
+			nodeStack = append(nodeStack, cur)
+			cur = cur.Left
+		}
+		cur = nodeStack[len(nodeStack)-1]
+		nodeStack = nodeStack[:len(nodeStack)-1]
+		result = append(result, cur.Val)
+		cur = cur.Right
+	}
+	return result
 }

@@ -8,7 +8,7 @@ type ListNode struct {
 
 // https://leetcode.cn/problems/add-two-numbers/description
 
-func addTwoNumbers(l1 *ListNode, l2 *ListNode) *ListNode {
+func addTwoNumbers1(l1 *ListNode, l2 *ListNode) *ListNode {
 	if l1 == nil {
 		return l2
 	}
@@ -53,6 +53,27 @@ func addTwoNumbers(l1 *ListNode, l2 *ListNode) *ListNode {
 		newCur.Next = &ListNode{Val: carry}
 	}
 	return newHead.Next
+}
+
+func addTwoNumbers(l1 *ListNode, l2 *ListNode) *ListNode {
+	dummyNode := &ListNode{Val: 0}
+	cur := dummyNode
+	carry := 0
+	for l1 != nil || l2 != nil || carry != 0 {
+		sum := carry
+		if l1 != nil {
+			sum += l1.Val
+			l1 = l1.Next
+		}
+		if l2 != nil {
+			sum += l2.Val
+			l2 = l2.Next
+		}
+		cur.Next = &ListNode{Val: sum % 10}
+		carry = sum / 10
+		cur = cur.Next
+	}
+	return dummyNode.Next
 }
 
 func main() {

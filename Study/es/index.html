@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频播放测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .video-container {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        video {
+            width: 100%;
+            max-width: 800px;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .controls-info {
+            background-color: #e8f4fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .controls-info h3 {
+            color: #2c5aa0;
+            margin-top: 0;
+        }
+        .controls-info ul {
+            color: #555;
+            line-height: 1.6;
+        }
+        .test-buttons {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .test-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .test-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>视频播放和进度拖放功能测试</h1>
+        
+        <div class="video-container">
+            <video 
+                id="testVideo"
+                controls 
+                preload="metadata"
+                poster="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuinhumikea1i+ivleS4rS4uLjwvdGV4dD48L3N2Zz4=">
+                <source src="https://aviation-review.oss-cn-beijing.aliyuncs.com/aviation-files/oceans.mp4?Expires=1753680965&OSSAccessKeyId=TMP.3Kpu6t5V4rwvWeh1smmunt4pUS9DmkQSrco2LE4Xi9Qb965SfGwnavDW6TLDVbcErvbSxYwLto464mZJxwEUrYQBNH8UiZ&Signature=ethI02Y2dJiYCLlHrtEECNZa7MI%3D" type="video/mp4">
+                您的浏览器不支持视频播放。
+            </video>
+        </div>
+
+        <div class="controls-info">
+            <h3>测试功能说明：</h3>
+            <ul>
+                <li><strong>播放/暂停：</strong> 点击视频中央的播放按钮或使用空格键</li>
+                <li><strong>进度拖放：</strong> 拖动进度条来跳转到视频的任意位置</li>
+                <li><strong>音量控制：</strong> 调整音量滑块或使用静音按钮</li>
+                <li><strong>全屏播放：</strong> 点击全屏按钮进入全屏模式</li>
+                <li><strong>快进/快退：</strong> 使用左右箭头键进行快进快退</li>
+            </ul>
+        </div>
+
+        <div class="test-buttons">
+            <button class="test-btn" onclick="playVideo()">播放</button>
+            <button class="test-btn" onclick="pauseVideo()">暂停</button>
+            <button class="test-btn" onclick="seekTo(30)">跳转到30秒</button>
+            <button class="test-btn" onclick="seekTo(60)">跳转到60秒</button>
+            <button class="test-btn" onclick="toggleMute()">静音/取消静音</button>
+            <button class="test-btn" onclick="changeSpeed(0.5)">0.5x速度</button>
+            <button class="test-btn" onclick="changeSpeed(1)">正常速度</button>
+            <button class="test-btn" onclick="changeSpeed(2)">2x速度</button>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('testVideo');
+
+        // 播放视频
+        function playVideo() {
+            video.play().catch(e => {
+                console.log('播放失败:', e);
+                alert('播放失败，请检查视频链接是否有效');
+            });
+        }
+
+        // 暂停视频
+        function pauseVideo() {
+            video.pause();
+        }
+
+        // 跳转到指定时间
+        function seekTo(seconds) {
+            video.currentTime = seconds;
+        }
+
+        // 切换静音状态
+        function toggleMute() {
+            video.muted = !video.muted;
+        }
+
+        // 改变播放速度
+        function changeSpeed(rate) {
+            video.playbackRate = rate;
+        }
+
+        // 监听视频事件
+        video.addEventListener('loadstart', () => {
+            console.log('开始加载视频');
+        });
+
+        video.addEventListener('loadedmetadata', () => {
+            console.log('视频元数据加载完成');
+            console.log('视频时长:', video.duration, '秒');
+        });
+
+        video.addEventListener('canplay', () => {
+            console.log('视频可以开始播放');
+        });
+
+        video.addEventListener('error', (e) => {
+            console.error('视频加载错误:', e);
+            alert('视频加载失败，请检查网络连接和视频链接');
+        });
+
+        video.addEventListener('timeupdate', () => {
+            // 可以在这里添加进度更新的逻辑
+            const progress = (video.currentTime / video.duration) * 100;
+            // console.log('播放进度:', progress.toFixed(2) + '%');
+        });
+
+        // 键盘快捷键支持
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName.toLowerCase() !== 'input') {
+                switch(e.code) {
+                    case 'Space':
+                        e.preventDefault();
+                        if (video.paused) {
+                            playVideo();
+                        } else {
+                            pauseVideo();
+                        }
+                        break;
+                    case 'ArrowLeft':
+                        e.preventDefault();
+                        video.currentTime = Math.max(0, video.currentTime - 10);
+                        break;
+                    case 'ArrowRight':
+                        e.preventDefault();
+                        video.currentTime = Math.min(video.duration, video.currentTime + 10);
+                        break;
+                    case 'KeyM':
+                        e.preventDefault();
+                        toggleMute();
+                        break;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

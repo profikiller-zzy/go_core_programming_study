@@ -8,7 +8,7 @@ func longestPalindrome1(s string) string {
 	var res string
 	res = s[0:1]
 
-	// dp[i][j] 表示下标从 i 到 j 的子串是否是回文串
+	// dp[left][j] 表示下标从 left 到 j 的子串是否是回文串
 	var dp = make([][]bool, n)
 	for i := 0; i < n; i++ {
 		dp[i] = make([]bool, n)
@@ -17,16 +17,16 @@ func longestPalindrome1(s string) string {
 	for i := 0; i < n; i++ {
 		dp[i][i] = true
 	}
-	for i := n - 1; i >= 0; i-- {
-		for j := i + 1; j <= n-1; j++ {
-			if j-i == 1 { // 当前这个子串的长度为2
-				dp[i][j] = s[i] == s[j]
+	for left := n - 1; left >= 0; left-- {
+		for right := left + 1; right <= n-1; right++ {
+			if right-left == 1 { // 当前这个子串的长度为2
+				dp[left][right] = s[left] == s[right]
 			} else {
-				dp[i][j] = s[i] == s[j] && dp[i+1][j-1]
+				dp[left][right] = s[left] == s[right] && dp[left+1][right-1]
 			}
-			if dp[i][j] {
-				if len(res) < j-i+1 {
-					res = s[i : j+1] // 更新结果
+			if dp[left][right] {
+				if len(res) < right-left+1 {
+					res = s[left : right+1] // 更新结果
 				}
 			}
 		}
@@ -34,14 +34,20 @@ func longestPalindrome1(s string) string {
 	return res
 }
 
+// longestPalindrome 中心扩展法解最长回文串
 func longestPalindrome(s string) string {
 	if s == "" {
 		return ""
 	}
 	start, end := 0, 0
+	expandAroundCenter := func(left, right int) (int, int) {
+		for ; left >= 0 && right < len(s) && s[left] == s[right]; left, right = left-1, right+1 {
+		}
+		return left + 1, right - 1
+	}
 	for i := 0; i < len(s); i++ {
-		left1, right1 := expandAroundCenter(s, i, i)
-		left2, right2 := expandAroundCenter(s, i, i+1)
+		left1, right1 := expandAroundCenter(i, i)
+		left2, right2 := expandAroundCenter(i, i+1)
 		if right1-left1 > end-start {
 			start, end = left1, right1
 		}
@@ -50,12 +56,6 @@ func longestPalindrome(s string) string {
 		}
 	}
 	return s[start : end+1]
-}
-
-func expandAroundCenter(s string, left, right int) (int, int) {
-	for ; left >= 0 && right < len(s) && s[left] == s[right]; left, right = left-1, right+1 {
-	}
-	return left + 1, right - 1
 }
 
 func main() {

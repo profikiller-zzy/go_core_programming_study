@@ -1,20 +1,38 @@
 package main
 
+import "fmt"
+
 func partitionLabels(s string) []int {
-	// 记录每个字符最后出现的位置
-	maxDis := make(map[byte]int)
-	for i := 0; i < len(s); i++ {
-		maxDis[s[i]] = i
+	n := len(s)
+	if n == 0 {
+		return []int{}
 	}
 
-	var res []int
-	start, end := 0, 0
-	for i := 0; i < len(s); i++ {
-		end = max(end, maxDis[s[i]])
-		if i == end {
-			res = append(res, end-start+1)
-			start = i + 1
+	var lastPos [26]int
+	for i := 0; i < n; i++ {
+		lastPos[s[i]-'a'] = i
+	}
+	res := make([]int, 0, 26)
+
+	prevEnd := -1
+	maxEnd := 0
+
+	for i := 0; i < n; i++ {
+		idx := s[i] - 'a'
+		// 更新当前片段的最远边界
+		if lastPos[idx] > maxEnd {
+			maxEnd = lastPos[idx]
+		}
+		if i == maxEnd {
+			res = append(res, i-prevEnd)
+			prevEnd = i
 		}
 	}
 	return res
+}
+
+func main() {
+	s := "ababcbacadefegdehijhklij"
+	result := partitionLabels(s)
+	fmt.Println(result)
 }

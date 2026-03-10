@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
+
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
@@ -17,8 +19,8 @@ type AggregationRequest struct {
 
 // AggregationResult 聚合查询结果
 type AggregationResult struct {
-	Total       int64                  `json:"total"`       // 总记录数
-	Took        int                    `json:"took"`        // 查询耗时(ms)
+	Total        int64                  `json:"total"`        // 总记录数
+	Took         int                    `json:"took"`         // 查询耗时(ms)
 	Aggregations map[string]interface{} `json:"aggregations"` // 聚合结果
 }
 
@@ -44,7 +46,7 @@ type PriceRangeStats struct {
 	Count int64  `json:"count"`
 }
 
-// 1. 基础聚合查询 - 按城市分组统计
+// BuildCityAggregationQuery 基础聚合查询 - 按城市分组统计
 func BuildCityAggregationQuery(req AggregationRequest) (*search.Request, error) {
 	searchReq := &search.Request{
 		Size: func() *int { size := 0; return &size }(), // 不返回文档，只要聚合结果
@@ -100,7 +102,7 @@ func BuildCityAggregationQuery(req AggregationRequest) (*search.Request, error) 
 	return searchReq, nil
 }
 
-// 2. 多维度聚合查询 - 品牌和星级统计
+// BuildMultiDimensionAggregationQuery 多维度聚合查询 - 品牌和星级统计
 func BuildMultiDimensionAggregationQuery(req AggregationRequest) (*search.Request, error) {
 	searchReq := &search.Request{
 		Size: func() *int { size := 0; return &size }(),
@@ -162,7 +164,7 @@ func BuildMultiDimensionAggregationQuery(req AggregationRequest) (*search.Reques
 	return searchReq, nil
 }
 
-// 3. 范围聚合查询 - 价格区间统计
+// BuildRangeAggregationQuery 3. 范围聚合查询 - 价格区间统计
 func BuildRangeAggregationQuery(req AggregationRequest) (*search.Request, error) {
 	searchReq := &search.Request{
 		Size: func() *int { size := 0; return &size }(),
@@ -248,7 +250,7 @@ func BuildRangeAggregationQuery(req AggregationRequest) (*search.Request, error)
 	return searchReq, nil
 }
 
-// 4. 统计聚合查询 - 价格和评分统计
+// BuildStatsAggregationQuery 统计聚合查询 - 价格和评分统计
 func BuildStatsAggregationQuery(req AggregationRequest) (*search.Request, error) {
 	searchReq := &search.Request{
 		Size: func() *int { size := 0; return &size }(),
@@ -379,7 +381,7 @@ func BuildNestedAggregationQuery(req AggregationRequest) (*search.Request, error
 	return searchReq, nil
 }
 
-// 执行聚合查询的通用函数
+// ExecuteAggregationQuery 执行聚合查询的通用函数
 func ExecuteAggregationQuery(searchReq *search.Request, typedESClient *elasticsearch.TypedClient) (*AggregationResult, error) {
 	// 执行搜索
 	response, err := typedESClient.Search().
@@ -413,7 +415,7 @@ func ExecuteAggregationQuery(searchReq *search.Request, typedESClient *elasticse
 	}, nil
 }
 
-// 解析城市聚合结果的辅助函数
+// ParseCityAggregationResult 解析城市聚合结果的辅助函数
 func ParseCityAggregationResult(result *AggregationResult) ([]CityStats, error) {
 	citiesAgg, ok := result.Aggregations["cities"].(map[string]interface{})
 	if !ok {
@@ -456,7 +458,7 @@ func ParseCityAggregationResult(result *AggregationResult) ([]CityStats, error) 
 	return cityStats, nil
 }
 
-// 解析品牌聚合结果的辅助函数
+// ParseBrandAggregationResult 解析品牌聚合结果的辅助函数
 func ParseBrandAggregationResult(result *AggregationResult) ([]BrandStats, error) {
 	brandsAgg, ok := result.Aggregations["brands"].(map[string]interface{})
 	if !ok {
@@ -492,7 +494,7 @@ func ParseBrandAggregationResult(result *AggregationResult) ([]BrandStats, error
 	return brandStats, nil
 }
 
-// 解析价格区间聚合结果的辅助函数
+// ParsePriceRangeAggregationResult 解析价格区间聚合结果的辅助函数
 func ParsePriceRangeAggregationResult(result *AggregationResult) ([]PriceRangeStats, error) {
 	priceRangesAgg, ok := result.Aggregations["price_ranges"].(map[string]interface{})
 	if !ok {
@@ -521,4 +523,160 @@ func ParsePriceRangeAggregationResult(result *AggregationResult) ([]PriceRangeSt
 	}
 
 	return priceRangeStats, nil
+}
+
+// FilterOptions 筛选选项结果
+type FilterOptions struct {
+	Cities    []FilterOption `json:"cities"`    // 城市选项
+	Brands    []FilterOption `json:"brands"`    // 品牌选项
+	StarNames []FilterOption `json:"starNames"` // 星级选项
+}
+
+// FilterOption 单个筛选选项
+type FilterOption struct {
+	Value string `json:"value"` // 选项值
+	Label string `json:"label"` // 显示标签
+	Count int64  `json:"count"` // 文档数量
+}
+
+// BuildFilterOptionsQuery 构建筛选选项聚合查询 - 获取所有城市、品牌、星级选项
+func BuildFilterOptionsQuery() (*search.Request, error) {
+	searchReq := &search.Request{
+		Size: func() *int { size := 0; return &size }(), // 不返回文档，只要聚合结果
+	}
+
+	// 不添加任何过滤条件，获取所有数据的聚合结果
+	searchReq.Query = &types.Query{
+		MatchAll: &types.MatchAllQuery{},
+	}
+
+	// 构建聚合
+	aggregations := make(map[string]types.Aggregations)
+
+	// 城市聚合
+	aggregations["cities"] = types.Aggregations{
+		Terms: &types.TermsAggregation{
+			Field: func() *string { field := "city"; return &field }(),
+			Size:  func() *int { size := 100; return &size }(), // 获取更多城市选项
+			Order: map[string]sortorder.SortOrder{
+				"_count": sortorder.Desc, // 按文档数量降序排列
+			},
+		},
+	}
+
+	// 品牌聚合
+	aggregations["brands"] = types.Aggregations{
+		Terms: &types.TermsAggregation{
+			Field: func() *string { field := "brand"; return &field }(),
+			Size:  func() *int { size := 100; return &size }(), // 获取更多品牌选项
+			Order: map[string]sortorder.SortOrder{
+				"_count": sortorder.Desc, // 按文档数量降序排列
+			},
+		},
+	}
+
+	// 星级聚合
+	aggregations["starNames"] = types.Aggregations{
+		Terms: &types.TermsAggregation{
+			Field: func() *string { field := "starName"; return &field }(),
+			Size:  func() *int { size := 20; return &size }(), // 获取所有星级选项
+			Order: map[string]sortorder.SortOrder{
+				"_key": sortorder.Asc, // 按星级名称升序排列
+			},
+		},
+	}
+
+	searchReq.Aggregations = aggregations
+	return searchReq, nil
+}
+
+// ParseFilterOptionsResult 解析筛选选项聚合结果
+func ParseFilterOptionsResult(result *AggregationResult) (*FilterOptions, error) {
+	filterOptions := &FilterOptions{
+		Cities:    []FilterOption{},
+		Brands:    []FilterOption{},
+		StarNames: []FilterOption{},
+	}
+
+	// 解析城市选项
+	if citiesAgg, ok := result.Aggregations["cities"].(map[string]interface{}); ok {
+		if buckets, ok := citiesAgg["buckets"].([]interface{}); ok {
+			for _, bucket := range buckets {
+				if bucketMap, ok := bucket.(map[string]interface{}); ok {
+					value, _ := bucketMap["key"].(string)
+					count, _ := bucketMap["doc_count"].(float64)
+					if value != "" {
+						filterOptions.Cities = append(filterOptions.Cities, FilterOption{
+							Value: value,
+							Label: value,
+							Count: int64(count),
+						})
+					}
+				}
+			}
+		}
+	}
+
+	// 解析品牌选项
+	if brandsAgg, ok := result.Aggregations["brands"].(map[string]interface{}); ok {
+		if buckets, ok := brandsAgg["buckets"].([]interface{}); ok {
+			for _, bucket := range buckets {
+				if bucketMap, ok := bucket.(map[string]interface{}); ok {
+					value, _ := bucketMap["key"].(string)
+					count, _ := bucketMap["doc_count"].(float64)
+					if value != "" {
+						filterOptions.Brands = append(filterOptions.Brands, FilterOption{
+							Value: value,
+							Label: value,
+							Count: int64(count),
+						})
+					}
+				}
+			}
+		}
+	}
+
+	// 解析星级选项
+	if starNamesAgg, ok := result.Aggregations["starNames"].(map[string]interface{}); ok {
+		if buckets, ok := starNamesAgg["buckets"].([]interface{}); ok {
+			for _, bucket := range buckets {
+				if bucketMap, ok := bucket.(map[string]interface{}); ok {
+					value, _ := bucketMap["key"].(string)
+					count, _ := bucketMap["doc_count"].(float64)
+					if value != "" {
+						filterOptions.StarNames = append(filterOptions.StarNames, FilterOption{
+							Value: value,
+							Label: value,
+							Count: int64(count),
+						})
+					}
+				}
+			}
+		}
+	}
+
+	return filterOptions, nil
+}
+
+// GetFilterOptions 获取筛选选项（完整的调用函数）
+func GetFilterOptions(typedESClient *elasticsearch.TypedClient) (*FilterOptions, error) {
+	// 构建查询
+	searchReq, err := BuildFilterOptionsQuery()
+	if err != nil {
+		return nil, fmt.Errorf("构建筛选选项查询失败: %v", err)
+	}
+
+	// 执行查询
+	result, err := ExecuteAggregationQuery(searchReq, typedESClient)
+	if err != nil {
+		return nil, fmt.Errorf("执行筛选选项查询失败: %v", err)
+	}
+
+	// 解析结果
+	filterOptions, err := ParseFilterOptionsResult(result)
+	if err != nil {
+		return nil, fmt.Errorf("解析筛选选项结果失败: %v", err)
+	}
+
+	return filterOptions, nil
 }

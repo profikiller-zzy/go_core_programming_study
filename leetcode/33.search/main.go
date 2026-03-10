@@ -4,7 +4,7 @@ import "fmt"
 
 //https://leetcode.cn/problems/search-in-rotated-sorted-array/description/
 
-func search(nums []int, target int) int {
+func search1(nums []int, target int) int {
 	// 先找到k
 	var (
 		low  = 0
@@ -46,6 +46,41 @@ func search(nums []int, target int) int {
 			return binarySearch(nums, target, k, len(nums)-1)
 		}
 	}
+}
+
+func search(nums []int, target int) int {
+	n := len(nums)
+	if n == 0 {
+		return -1
+	}
+
+	// 第一步：找到旋转点 k (最小值的下标)
+	low, high := 0, n-1
+	for low < high {
+		mid := (low + high) / 2
+		if nums[mid] > nums[high] {
+			low = mid + 1
+		} else {
+			high = mid
+		}
+	}
+	k := low
+
+	// 第二步：在逻辑上的“有序数组”中进行二分查找
+	// 逻辑范围是 [0, n-1]，但实际访问时需要通过 (mid + k) % n 映射回原数组
+	low, high = 0, n-1
+	for low <= high {
+		mid := (low + high) / 2
+		realMid := (mid + k) % n
+		if nums[realMid] == target {
+			return realMid
+		} else if nums[realMid] < target {
+			low = mid + 1
+		} else {
+			high = mid - 1
+		}
+	}
+	return -1
 }
 
 func main() {

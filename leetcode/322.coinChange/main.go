@@ -1,39 +1,67 @@
 package main
 
-import "sort"
+import (
+	"fmt"
+	"sort"
+)
+
+func coinChange1(coins []int, amount int) int {
+	if amount == 0 {
+		return 0
+	}
+	maxVal := amount + 1
+	dp := make([]int, amount+1)
+	for i := range dp {
+		dp[i] = maxVal
+	}
+	dp[0] = 0
+	for i := 1; i <= amount; i++ {
+		for _, coin := range coins {
+			if coin <= i {
+				// 核心状态转移方程：
+				// dp[i] = min(当前值, 减去硬币后的值 + 1)
+				// 如果 dp[i-coin] 是 maxVal，那么 dp[i-coin]+1 也会大于 maxVal，不会被选中
+				if dp[i-coin]+1 < dp[i] {
+					dp[i] = dp[i-coin] + 1
+				}
+			}
+		}
+	}
+	if dp[amount] > amount {
+		return -1
+	}
+	return dp[amount]
+}
 
 func coinChange(coins []int, amount int) int {
 	if amount == 0 {
 		return 0
 	}
-	sort.Ints(coins) // 先讲 coins 排序
-	var dp = make([]int, amount+1)
-	dp[0] = 0
-	for i := 1; i <= amount; i++ {
-		// 求 dp[i]
-		if i < coins[0] { // 如果 i 小于 coins[0]，说明没有 coins 可以使用
-			dp[i] = -1
-			continue
-		}
-		var minSteps = -1
-		for j := 0; j < len(coins); j++ {
-			if coins[j] > i { // 如果 coins[j] 大于 i，之后的 coins[j] 都大于 i，都不可用
-				break
+	sort.Ints(coins)
+	queue := []int{amount}
+	step := 0
+	visited := make([]bool, amount+1)
+	visited[amount] = true
+	for len(queue) > 0 {
+		size := len(queue)
+		step++
+		for i := 0; i < size; i++ {
+			cur := queue[0]
+			queue = queue[1:]
+			for j := 0; j < len(coins); j++ {
+				next := cur - coins[j]
+				if next == 0 {
+					return step
+				} else if next > 0 && !visited[next] {
+					visited[next] = true
+					queue = append(queue, next)
+				}
 			}
-			if dp[i-coins[j]] == -1 { // 如果 dp[i-coins[j]] == -1，说明没有 coins 可以使用
-				continue
-			}
-			if minSteps == -1 {
-				minSteps = dp[i-coins[j]]
-			} else {
-				minSteps = min(minSteps, dp[i-coins[j]])
-			}
-		}
-		if minSteps == -1 {
-			dp[i] = -1
-		} else {
-			dp[i] = minSteps + 1
 		}
 	}
-	return dp[amount]
+	return -1
+}
+
+func main() {
+	fmt.Println(coinChange([]int{2}, 3))
 }

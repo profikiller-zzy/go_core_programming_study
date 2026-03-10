@@ -1,69 +1,36 @@
 package main
 
-import "container/list"
+import (
+	"fmt"
+)
 
-type Stack struct {
-	len  int
-	data []int
-}
-
-func newStack() *Stack {
-	return &Stack{
-		len:  0,
-		data: make([]int, 0),
-	}
-}
-
-func (s *Stack) push(c int) {
-	s.data = append(s.data, c)
-	s.len++
-}
-
-func (s *Stack) pop() {
-	if s.len == 0 {
-		return
-	}
-	s.data = s.data[:s.len-1]
-	s.len--
-}
-
-func (s *Stack) top() int {
-	if s.len == 0 {
-		return -1
-	}
-	return s.data[s.len-1]
-}
-
-func (s *Stack) isEmpty() bool {
-	return s.len == 0
-}
-
-// largestRectangleArea1 参考leetcode官方题解单调栈解决最大矩形面积问题
-// 使用自定义栈实现
 func largestRectangleArea1(heights []int) int {
 	n := len(heights)
-	left, right := newStack(), newStack()
-	left.push(-1)
-	right.push(n)
-	leftIndex, rightIndex := make([]int, n), make([]int, n)
+	leftStack, rightStack := make([]int, 1), make([]int, 1)
+	leftStack[0], rightStack[0] = -1, n
+	left, right := make([]int, n), make([]int, n)
 
 	for index := 0; index < n; index++ {
-		for left.len > 1 && heights[index] <= heights[left.top()] {
-			left.pop()
+		// 维护一个单调递增栈
+		// 如果当前柱子 height[index] <= 栈顶柱子的高度，说明栈顶柱子不可能是 index 左边第一个比它矮的
+		// 而且对于后面的柱子来说，栈顶柱子也被 index 挡住了（因为 index 更矮或相等且更靠右），所以弹出栈顶
+		for len(leftStack) > 1 && heights[index] <= heights[leftStack[len(leftStack)-1]] {
+			leftStack = leftStack[:len(leftStack)-1]
 		}
-		leftIndex[index] = left.top()
-		left.push(index)
+		left[index] = leftStack[len(leftStack)-1]
+		leftStack = append(leftStack, index)
 	}
 	for index := n - 1; index >= 0; index-- {
-		for right.len > 1 && heights[index] <= heights[right.top()] {
-			right.pop()
+		for len(rightStack) > 1 && heights[index] <= heights[rightStack[len(rightStack)-1]] {
+			rightStack = rightStack[:len(rightStack)-1]
 		}
-		rightIndex[index] = right.top()
-		right.push(index)
+		right[index] = rightStack[len(rightStack)-1]
+		rightStack = append(rightStack, index)
 	}
-	maxArea := 0
+
+	var maxArea int
 	for index := 0; index < n; index++ {
-		curArea := (rightIndex[index] - leftIndex[index] - 1) * heights[index]
+		curArea := (right[index] - left[index] - 1) * heights[index]
 		if curArea > maxArea {
 			maxArea = curArea
 		}
@@ -71,35 +38,37 @@ func largestRectangleArea1(heights []int) int {
 	return maxArea
 }
 
-// largestRectangleArea 参考leetcode官方题解单调栈解决最大矩形面积问题
-// 使用container/list实现
 func largestRectangleArea(heights []int) int {
 	n := len(heights)
-	left, right := list.New(), list.New()
-	left.PushBack(-1)
-	right.PushBack(n)
-	leftIndex, rightIndex := make([]int, n), make([]int, n)
+	leftStack, rightStack := make([]int, 1), make([]int, 1)
+	leftStack[0], rightStack[0] = -1, n
+	left, right := make([]int, n), make([]int, n)
+	for i := 0; i < n; i++ {
+		for len(leftStack) > 1 && heights[i] <= heights[leftStack[len(leftStack)-1]] {
+			leftStack = leftStack[:len(leftStack)-1]
+		}
+		left[i] = leftStack[len(leftStack)-1]
+		leftStack = append(leftStack, i)
+	}
+	for i := n - 1; i >= 0; i-- {
+		for len(rightStack) > 1 && heights[i] <= heights[rightStack[len(rightStack)-1]] {
+			rightStack = rightStack[:len(rightStack)-1]
+		}
+		right[i] = rightStack[len(rightStack)-1]
+		rightStack = append(rightStack, i)
+	}
 
-	for index := 0; index < n; index++ {
-		for left.Len() > 1 && heights[index] <= heights[left.Back().Value.(int)] {
-			left.Remove(left.Back())
-		}
-		leftIndex[index] = left.Back().Value.(int)
-		left.PushBack(index)
-	}
-	for index := n - 1; index >= 0; index-- {
-		for right.Len() > 1 && heights[index] <= heights[right.Back().Value.(int)] {
-			right.Remove(right.Back())
-		}
-		rightIndex[index] = right.Back().Value.(int)
-		right.PushBack(index)
-	}
-	maxArea := 0
-	for index := 0; index < n; index++ {
-		curArea := (rightIndex[index] - leftIndex[index] - 1) * heights[index]
+	var curArea, maxArea int
+	for i := 0; i < n; i++ {
+		curArea = (right[i] - left[i] - 1) * heights[i]
 		if curArea > maxArea {
 			maxArea = curArea
 		}
 	}
 	return maxArea
+}
+
+func main() {
+	heights := []int{2, 1, 5, 6, 2, 3}
+	fmt.Println(largestRectangleArea(heights))
 }

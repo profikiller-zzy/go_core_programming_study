@@ -10,8 +10,7 @@ import (
 	"github.com/apache/rocketmq-client-go/v2/producer"
 )
 
-type transactionListener struct {
-}
+type transactionListener struct{}
 
 func (tl *transactionListener) ExecuteLocalTransaction(msg *primitive.Message) primitive.LocalTransactionState {
 	time.Sleep(time.Second * 2)
@@ -36,7 +35,7 @@ func newTransactionListener() primitive.TransactionListener {
 func main() {
 	p, _ := rocketmq.NewTransactionProducer(
 		newTransactionListener(),
-		producer.WithNameServer([]string{"8.155.39.153:9876"}),
+		producer.WithNameServer([]string{"127.0.0.1:9876"}),
 		producer.WithRetry(1),
 	)
 	_ = p.Start()

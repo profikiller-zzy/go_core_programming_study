@@ -11,7 +11,7 @@ func nextPermutation(nums []int) {
 		}
 	}
 	for i := len(nums) - 2; i >= 0; i-- {
-		// 从后往前找到第一个升序的位置，这说明找到了需要调整的位置，即[i:len(nums)-1]
+		// 从后往前找到第一个升序的位置，这说明找到了需要调整的位置，即[i:len(nums)]
 		if nums[i] < nums[i+1] {
 			for j := len(nums) - 1; j > i; j-- {
 				// 从后往前找到第一个比nums[i]大的位置，交换两个位置的值

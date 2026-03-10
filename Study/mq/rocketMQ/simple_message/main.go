@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+
 	"github.com/apache/rocketmq-client-go/v2"
 	"github.com/apache/rocketmq-client-go/v2/primitive"
 	"github.com/apache/rocketmq-client-go/v2/producer"
@@ -10,7 +11,7 @@ import (
 
 func main() {
 	p, err := rocketmq.NewProducer(
-		producer.WithNameServer([]string{"http://8.155.39.153:9876"}),
+		producer.WithNameServer([]string{"127.0.0.1:9876"}), // Changed from remote IP
 		producer.WithRetry(2),
 	)
 	defer func(p rocketmq.Producer) {
@@ -27,7 +28,7 @@ func main() {
 		panic(err)
 	}
 
-	res, err := p.SendSync(context.Background(), primitive.NewMessage("mxshop_test", []byte("hello this is rocketMQ go client1")))
+	res, err := p.SendSync(context.Background(), primitive.NewMessage("test", []byte("hello this is rocketMQ go client1")))
 	if err != nil {
 		fmt.Printf("send message error: %s\n", err)
 	} else {

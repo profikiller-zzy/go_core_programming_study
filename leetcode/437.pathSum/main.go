@@ -28,7 +28,6 @@ func returnPathSum(root *TreeNode, targetSum int) int {
 }
 
 func pathSum(root *TreeNode, targetSum int) int {
-	// 统计以当前节点为根节点的路径和为targetSum的路径数
 	preSum := map[int]int{0: 1} // 前缀和，初始化时有一个0的前缀和
 	var count int
 	var preOrder func(*TreeNode, int)

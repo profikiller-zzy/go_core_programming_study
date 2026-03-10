@@ -2,17 +2,17 @@ package main
 
 import "fmt"
 
-// https://leetcode.cn/problems/longest-consecutive-sequence/description
 func longestConsecutive(nums []int) int {
-	if len(nums) == 0 || len(nums) == 1 {
+	if len(nums) <= 1 {
 		return len(nums)
 	}
-	// 使用map来存储数字
+
 	numSet := make(map[int]bool)
+	maxLength := 0
 	for _, num := range nums {
 		numSet[num] = true
 	}
-	maxLength := 0
+
 	for _, num := range nums {
 		if !numSet[num] {
 			continue
