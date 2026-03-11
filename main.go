@@ -1,35 +1,51 @@
 package main
 
 import (
-	"encoding/base64"
 	"fmt"
-	"os"
 )
 
-func main() {
-	// 检查是否有命令行参数
-	if len(os.Args) < 2 {
-		fmt.Println("用法: go run main.go <要编码的文本>")
-		fmt.Println("示例: go run main.go \"Hello World\"")
-		os.Exit(1)
-	}
+type TreeNode struct {
+	val   int
+	left  *TreeNode
+	right *TreeNode
+}
 
-	// 获取输入文本（支持带空格的参数，需将多个参数合并或只取第一个）
-	// 这里我们将所有参数用空格连接，以支持 "Hello World" 这种输入
-	inputText := ""
-	for i, arg := range os.Args[1:] {
-		if i > 0 {
-			inputText += " "
+func postorder(root *TreeNode) []int {
+	var stack []*TreeNode
+	result := make([]int, 0)
+	if root == nil {
+		return result
+	}
+	cur := root
+	var prev *TreeNode
+	for len(stack) > 0 || cur != nil {
+		for cur != nil {
+			stack = append(stack, cur)
+			cur = cur.left
 		}
-		inputText += arg
+		top := stack[len(stack)-1]
+		if top.right == nil || top.right == prev {
+			result = append(result, top.val)
+			stack = stack[:len(stack)-1]
+			prev = top
+		} else {
+			cur = top.right
+		}
 	}
+	return result
+}
 
-	// 将字符串转换为字节切片
-	inputBytes := []byte(inputText)
+func main() {
+	slice := []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+	s1 := slice[2:5]
+	s2 := s1[2:6:7]
 
-	// 执行 Base64 编码
-	encodedStr := base64.StdEncoding.EncodeToString(inputBytes)
+	s2 = append(s2, 100)
+	s2 = append(s2, 200)
 
-	// 输出结果
-	fmt.Println(encodedStr)
+	s1[2] = 20
+
+	fmt.Println(s1)
+	fmt.Println(s2)
+	fmt.Println(slice)
 }
