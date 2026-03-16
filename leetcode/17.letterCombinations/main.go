@@ -21,7 +21,7 @@ func letterCombinations(digits string) []string {
 	var path []byte
 	var dfs func(index int)
 	dfs = func(index int) {
-		if len(path) == len(digits) {
+		if index == len(digits) {
 			res = append(res, string(path))
 			return
 		}

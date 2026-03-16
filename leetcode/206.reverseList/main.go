@@ -6,23 +6,17 @@ type ListNode struct {
 	Next *ListNode
 }
 
-// https://leetcode.cn/problems/reverse-linked-list/description
-
 func reverseList(head *ListNode) *ListNode {
-	if head == nil {
-		return nil
-	}
-	if head.Next == nil {
+	if head == nil || head.Next == nil {
 		return head
 	}
-
-	cur := head.Next
-	head.Next = nil
+	var prev *ListNode
+	cur := head
 	for cur != nil {
 		next := cur.Next
-		cur.Next = head
-		head = cur
+		cur.Next = prev
+		prev = cur
 		cur = next
 	}
-	return head
+	return prev
 }

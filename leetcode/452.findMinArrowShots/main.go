@@ -20,25 +20,21 @@ func (i intervalType) Swap(j, k int) {
 }
 
 func findMinArrowShots(points [][]int) int {
-	if len(points) <= 1 {
-		return len(points)
-	}
-	inv := intervalType(points)
-	sort.Sort(inv)
-
-	result := [][]int{[]int{points[0][0], points[0][1]}}
-	for index := 1; index < len(inv); index++ {
-		cur := result[len(result)-1]
-		next := inv[index]
-		if cur[1] >= next[0] { // 两个区间是相交的
-			cur[0] = next[0]
-			cur[1] = min(cur[1], next[1])
-		} else { // 两个区间不相交
-			newPoint := []int{next[0], next[1]}
-			result = append(result, newPoint)
+	sort.Slice(points, func(i, j int) bool {
+		return points[i][0] < points[j][0]
+	})
+	cur := []int{points[0][0], points[0][1]}
+	count := 1
+	for _, p := range points[1:] {
+		if p[0] <= cur[1] { // 两个区间有重叠，则合并
+			cur[0] = p[0] // 已经按照起点排序了,p[0]一定大于等于cur[0]
+			cur[1] = min(cur[1], p[1])
+		} else {
+			count++
+			cur = p
 		}
 	}
-	return len(result)
+	return count
 }
 
 func main() {
