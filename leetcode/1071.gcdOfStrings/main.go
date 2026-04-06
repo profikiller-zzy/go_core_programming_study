@@ -3,40 +3,32 @@ package main
 import "fmt"
 
 func gcdOfStrings(str1 string, str2 string) string {
-	len1, len2 := len(str1), len(str2)
-	gcdLen := gcd(len1, len2)
-	for l := gcdLen; l > 0; l-- {
-		if gcdLen%l != 0 {
-			continue
-		}
-		prefix := str1[0:l]
-		l1, l2 := 0, 0
-		for l1 < len1 || l2 < len2 {
-			if l1 < len1 {
-				if prefix != str1[l1:l1+l] {
-					break
-				}
-				l1 += l
+	l1, l2 := len(str1), len(str2)
+	factor := gcd(l1, l2)
+	prefix := str1[:factor]
+	var cur1, cur2 int
+	for cur1 < len(str1) || cur2 < len(str2) {
+		if cur1 < len(str1) {
+			if str1[cur1:cur1+factor] != prefix {
+				return ""
 			}
-			if l2 < len2 {
-				if prefix != str2[l2:l2+l] {
-					break
-				}
-				l2 += l
-			}
+			cur1 += factor
 		}
-		if l1 == len1 && l2 == len2 {
-			return prefix
+		if cur2 < len(str2) {
+			if str2[cur2:cur2+factor] != prefix {
+				return ""
+			}
+			cur2 += factor
 		}
 	}
-	return ""
+	return prefix
 }
 
-func gcd(m int, n int) int {
+func gcd(m, n int) int {
 	for n != 0 {
-		temp := m % n
+		factor := m % n
 		m = n
-		n = temp
+		n = factor
 	}
 	return m
 }

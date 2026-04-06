@@ -51,50 +51,57 @@ func dfs1(graph map[string][]pair, cur, target string, visited map[string]bool) 
 	return -1.0
 }
 
-func calcEquation(equations [][]string, values []float64, queries [][]string) []float64 {
-	type edge struct {
-		to       string
-		multiple float64
-	}
-	edges := make(map[string][]edge)
-	for i, equa := range equations {
-		from, to := equa[0], equa[1]
-		edges[from] = append(edges[from], edge{to, values[i]})
-		edges[to] = append(edges[to], edge{from, 1 / values[i]})
-	}
+type node struct {
+	varName  string
+	multiple float64
+}
 
-	var dfs func(string, string, float64, map[string]bool) float64
-	dfs = func(cur, target string, curMul float64, isVisited map[string]bool) float64 {
-		isVisited[cur] = true
-		if cur == target {
-			return curMul
-		}
-		for _, e := range edges[cur] {
-			to := e.to
-			multiple := e.multiple
-			if !isVisited[to] {
-				result := dfs(to, target, curMul*multiple, isVisited)
-				if result != -1 {
-					return result
-				}
-			}
-		}
-		return -1.0
+func calcEquation(equations [][]string, values []float64, queries [][]string) []float64 {
+	n := len(equations)
+	graph := make(map[string][]node)
+	for i := 0; i < n; i++ {
+		var1, var2 := equations[i][0], equations[i][1]
+		graph[var1] = append(graph[var1], node{var2, values[i]})
+		graph[var2] = append(graph[var2], node{var1, 1 / values[i]})
 	}
-	result := make([]float64, 0, len(queries))
+	var result []float64
 	for _, query := range queries {
-		var1, var2 := query[0], query[1]
-		if _, ok := edges[var1]; !ok {
+		start, end := query[0], query[1]
+		// query 中存在未定义的变量
+		if _, ok := graph[start]; !ok {
 			result = append(result, -1.0)
 			continue
 		}
-		if _, ok := edges[var2]; !ok {
+		if _, ok := graph[end]; !ok {
 			result = append(result, -1.0)
+			continue
+		}
+		if start == end {
+			result = append(result, 1.0)
 			continue
 		}
 		isVisited := make(map[string]bool)
-		queryVal := dfs(var1, var2, 1.0, isVisited)
-		result = append(result, queryVal)
+		isVisited[start] = true
+		queue := []node{{start, 1.0}}
+		isFind := false
+		for len(queue) > 0 {
+			curVar, curMultiple := queue[0].varName, queue[0].multiple
+			queue = queue[1:]
+			for _, e := range graph[curVar] {
+				if !isVisited[e.varName] {
+					isVisited[e.varName] = true
+					if e.varName == end {
+						result = append(result, curMultiple*e.multiple)
+						isFind = true
+						break
+					}
+					queue = append(queue, node{e.varName, curMultiple * e.multiple})
+				}
+			}
+		}
+		if !isFind {
+			result = append(result, -1.0)
+		}
 	}
 	return result
 }

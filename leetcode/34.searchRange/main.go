@@ -3,7 +3,7 @@ package main
 import "fmt"
 
 // https://leetcode.cn/problems/find-first-and-last-position-of-element-in-sorted-array/
-func searchRange(nums []int, target int) []int {
+func searchRange1(nums []int, target int) []int {
 	var res []int = make([]int, 2)
 	res[0] = -1
 	res[1] = -1
@@ -43,6 +43,40 @@ func searchRange(nums []int, target int) []int {
 		res[1] = -1
 	}
 	return res
+}
+
+func searchRange(nums []int, target int) []int {
+	left, right := 0, len(nums)-1
+	result := make([]int, 2)
+	for left <= right {
+		mid := (left + right) / 2
+		if target > nums[mid] { // 排除所有小于target的范围，最后left指向第一个大于等于target的值
+			left = mid + 1
+		} else {
+			right = mid - 1
+		}
+	}
+	if left < len(nums) {
+		result[0] = left
+	} else {
+		result[0] = -1
+	}
+
+	left, right = 0, len(nums)-1
+	for left <= right {
+		mid := (left + right) / 2
+		if target < nums[mid] {
+			right = mid - 1
+		} else {
+			left = mid + 1
+		}
+	}
+	if right >= 0 {
+		result[1] = right
+	} else {
+		result[1] = -1
+	}
+	return result
 }
 
 func main() {

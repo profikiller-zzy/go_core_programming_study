@@ -9,10 +9,9 @@ func coinChange1(coins []int, amount int) int {
 	if amount == 0 {
 		return 0
 	}
-	maxVal := amount + 1
 	dp := make([]int, amount+1)
 	for i := range dp {
-		dp[i] = maxVal
+		dp[i] = i
 	}
 	dp[0] = 0
 	for i := 1; i <= amount; i++ {
@@ -20,7 +19,6 @@ func coinChange1(coins []int, amount int) int {
 			if coin <= i {
 				// 核心状态转移方程：
 				// dp[i] = min(当前值, 减去硬币后的值 + 1)
-				// 如果 dp[i-coin] 是 maxVal，那么 dp[i-coin]+1 也会大于 maxVal，不会被选中
 				if dp[i-coin]+1 < dp[i] {
 					dp[i] = dp[i-coin] + 1
 				}
