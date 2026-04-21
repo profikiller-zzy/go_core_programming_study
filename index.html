@@ -1,0 +1,21 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Title</title><style>#data {
+    font-weight: bold;
+    color: cadetblue;
+    font-size: large;
+}
+</style></head><body><h1>SSE Test</h1><div id="data"></div><script>document.addEventListener("DOMContentLoaded", function () {
+    // 和服务端建立 SSE 连接
+    var eventSource = new EventSource("http://localhost:9999");
+
+    eventSource.onmessage = function (e) {
+        // 将数据渲染在 <div id="data"></div> 的内部
+        var data = e.data + "\n";
+        document.getElementById('data').innerText += data;
+    };
+
+    eventSource.onerror = function (e) {
+        console.error('Error occurred:', e);
+        eventSource.close();
+    };
+});
+</script></body></html>

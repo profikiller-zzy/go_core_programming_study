@@ -32,7 +32,7 @@ func (h *pairsHeap) Pop() interface{} {
 	return x
 }
 
-func kSmallestPairs(nums1 []int, nums2 []int, k int) [][]int {
+func kSmallestPairs1(nums1 []int, nums2 []int, k int) [][]int {
 	var res [][]int
 	res = make([][]int, 0, k)
 
@@ -72,6 +72,103 @@ func kSmallestPairs(nums1 []int, nums2 []int, k int) [][]int {
 		}
 	}
 	return res
+}
+
+type minHeap struct {
+	data []pair
+}
+
+func newMinHeap() *minHeap { // 建议返回指针
+	return &minHeap{
+		data: make([]pair, 0),
+	}
+}
+
+func (h *minHeap) Swap(i, j int) {
+	h.data[i], h.data[j] = h.data[j], h.data[i]
+}
+
+func (h *minHeap) Len() int {
+	return len(h.data)
+}
+
+func (h *minHeap) upAdjust(index int) {
+	for index > 0 {
+		parentIndex := (index - 1) / 2
+		// 小顶堆：父节点应该小于子节点
+		if h.data[parentIndex].sum > h.data[index].sum {
+			h.Swap(index, parentIndex)
+			index = parentIndex
+		} else {
+			break
+		}
+	}
+}
+
+func (h *minHeap) downAdjust(index int) {
+	n := h.Len()
+	for {
+		leftChild, rightChild := index*2+1, index*2+2
+		minIndex := index
+		if leftChild < n && h.data[leftChild].sum < h.data[minIndex].sum {
+			minIndex = leftChild
+		}
+		if rightChild < n && h.data[rightChild].sum < h.data[minIndex].sum {
+			minIndex = rightChild
+		}
+		if minIndex == index {
+			return
+		}
+		h.Swap(index, minIndex)
+		index = minIndex
+	}
+}
+
+func (h *minHeap) Push(p pair) {
+	h.data = append(h.data, p)
+	h.upAdjust(h.Len() - 1)
+}
+
+func (h *minHeap) Pop() pair {
+	top := h.data[0]
+	h.Swap(0, h.Len()-1)
+	h.data = h.data[:h.Len()-1]
+	if h.Len() > 0 {
+		h.downAdjust(0)
+	}
+	return top
+}
+
+func kSmallestPairs(nums1 []int, nums2 []int, k int) [][]int {
+	isVisited := make(map[[2]int]bool)
+	h := newMinHeap()
+
+	h.Push(pair{nums1[0] + nums2[0], 0, 0})
+	isVisited[[2]int{0, 0}] = true
+
+	var result [][]int
+
+	for k > 0 && h.Len() > 0 {
+		// 使用封装好的 Pop
+		minPair := h.Pop()
+
+		index1, index2 := minPair.index1, minPair.index2
+		result = append(result, []int{nums1[index1], nums2[index2]})
+		k--
+
+		// 向右扩展 (nums1 的下一个元素)
+		if index1+1 < len(nums1) && !isVisited[[2]int{index1 + 1, index2}] {
+			h.Push(pair{nums1[index1+1] + nums2[index2], index1 + 1, index2})
+			isVisited[[2]int{index1 + 1, index2}] = true
+		}
+
+		// 向下扩展 (nums2 的下一个元素)
+		if index2+1 < len(nums2) && !isVisited[[2]int{index1, index2 + 1}] {
+			h.Push(pair{nums1[index1] + nums2[index2+1], index1, index2 + 1})
+			isVisited[[2]int{index1, index2 + 1}] = true
+		}
+	}
+	return result
 }
 
 func main() {
