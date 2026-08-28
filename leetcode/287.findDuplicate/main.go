@@ -3,7 +3,7 @@ package main
 func findDuplicate(nums []int) int {
 	// 索引法 index 0 1 ... n-1
 	//       value 1 2 ... n
-	n := len(nums) - 1
+	n := len(nums)
 	if n == 1 {
 		return nums[0]
 	}

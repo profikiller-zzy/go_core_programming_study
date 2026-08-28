@@ -1,8 +1,10 @@
 package main
 
+import "math/rand"
+
 type RandomizedSet struct {
-	hash  map[int]int
-	value []int
+	hash  map[int]int // value -> index
+	value []int       // index -> value
 }
 
 func Constructor() RandomizedSet {

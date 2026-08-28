@@ -26,9 +26,6 @@ func canPartition1(nums []int) bool {
 	var dp = make([][]bool, n)
 	for i := 0; i < n; i++ {
 		dp[i] = make([]bool, target+1)
-	}
-	// 初始化
-	for i := 0; i < n; i++ {
 		dp[i][0] = true
 	}
 	dp[0][nums[0]] = true

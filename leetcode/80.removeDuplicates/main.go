@@ -19,8 +19,6 @@ func removeDuplicates(nums []int) int {
 				count++
 				slow++
 				nums[slow] = nums[fast]
-			} else {
-				continue // Skip duplicates
 			}
 		}
 	}

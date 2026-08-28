@@ -1,6 +1,6 @@
 package main
 
-func canFinish(numCourses int, prerequisites [][]int) bool {
+func canFinish1(numCourses int, prerequisites [][]int) bool {
 	inDegree := map[int]int{}
 	graph := make([][]int, numCourses)
 	queue := make([]int, 0) // 队列用于存储入度为0的节点
@@ -30,6 +30,39 @@ func canFinish(numCourses int, prerequisites [][]int) bool {
 		}
 	}
 	return total == numCourses
+}
+
+func canFinish(numCourses int, prerequisites [][]int) bool {
+	graph := make([][]int, numCourses)
+	sign := make([]int, numCourses)
+	for index := 0; index < numCourses; index++ {
+		graph[index] = make([]int, 0)
+	}
+	var dfs func(int)
+	valid := true
+	stack := make([]int, 0, numCourses)
+	dfs = func(course int) {
+		sign[course] = 1
+		for _, v := range graph[course] {
+			if sign[v] == 0 {
+				dfs(v)
+				if !valid {
+					return
+				}
+			} else if sign[v] == 1 {
+				valid = false
+				return
+			}
+			sign[v] = 2
+			stack = append(stack, course)
+		}
+	}
+	for index := 0; index < numCourses; index++ {
+		if sign[index] == 0 {
+			dfs(index)
+		}
+	}
+	return valid
 }
 
 func main() {

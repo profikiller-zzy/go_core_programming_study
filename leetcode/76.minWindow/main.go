@@ -8,7 +8,6 @@ import (
 func minWindow(s string, t string) string {
 	need := make(map[byte]int)   // 存储t中每个字符的需求数量
 	window := make(map[byte]int) // 存储当前滑动窗口中的字符数量
-
 	for i := 0; i < len(t); i++ {
 		need[t[i]]++
 	}

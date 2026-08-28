@@ -1,57 +1,27 @@
 package main
 
-type Stack struct {
-	len  int
-	data []byte
-}
-
-func newStack() *Stack {
-	return &Stack{
-		len:  0,
-		data: make([]byte, 0),
-	}
-}
-
-func (s *Stack) push(c byte) {
-	s.data = append(s.data, c)
-	s.len++
-}
-
-func (s *Stack) pop() byte {
-	if s.len == 0 {
-		return ' '
-	}
-	c := s.data[s.len-1]
-	s.data = s.data[:s.len-1]
-	s.len--
-	return c
-}
-
 func isValid(s string) bool {
-	stack := newStack()
+	var stack []byte
 	for index := 0; index < len(s); index++ {
 		switch s[index] {
 		case ')':
-			ch := stack.pop()
-			if ch != '(' {
+			if len(stack) <= 0 || stack[len(stack)-1] != '(' {
 				return false
 			}
-		case ']':
-			ch := stack.pop()
-			if ch != '[' {
-				return false
-			}
+			stack = stack[:len(stack)-1]
 		case '}':
-			ch := stack.pop()
-			if ch != '{' {
+			if len(stack) <= 0 || stack[len(stack)-1] != '{' {
 				return false
 			}
+			stack = stack[:len(stack)-1]
+		case ']':
+			if len(stack) <= 0 || stack[len(stack)-1] != '[' {
+				return false
+			}
+			stack = stack[:len(stack)-1]
 		default:
-			stack.push(s[index])
+			stack = append(stack, s[index])
 		}
 	}
-	if stack.len != 0 {
-		return false
-	}
-	return true
+	return len(stack) == 0
 }

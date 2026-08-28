@@ -26,11 +26,12 @@ func MultiPostOrderIteration(root *MultiTreeNode) []int {
 	for len(stack) > 0 {
 		top := stack[len(stack)-1]
 		if len(top.Children) == 0 || (prev != nil && top.Children[len(top.Children)-1] == prev) {
+			// 当前节点是叶子节点或者当前节点的所有子节点都已经访问过了
 			prev = top
-			stack = stack[:len(stack)-1] // 弹出栈顶，并且
+			stack = stack[:len(stack)-1]
 			result = append(result, top.Val)
 		} else {
-			for i := len(top.Children) - 1; i >= 0; i-- {
+			for i := len(top.Children) - 1; i >= 0; i-- { // 从右往左入栈
 				stack = append(stack, top.Children[i])
 			}
 		}

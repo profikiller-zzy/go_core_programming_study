@@ -1,75 +1,130 @@
 package main
 
 import (
-	"container/heap"
 	"fmt"
-	"sort"
 )
 
-// 小顶堆，存放大于等于中位数的那一部分
-type minHeap struct{ sort.IntSlice }
-
-func (h *minHeap) Push(x interface{}) {
-	h.IntSlice = append(h.IntSlice, x.(int))
-}
-func (h *minHeap) Pop() interface{} {
-	old := h.IntSlice
-	n := len(old)
-	x := old[n-1]
-	h.IntSlice = old[:n-1]
-	return x
+type HeapInterface interface {
+	Push(value int)
+	Pop() int
+	Peek() int
+	Len() int
 }
 
-// 大顶堆，存放小于中位数的数
-type maxHeap struct{ sort.IntSlice }
-
-func (h *maxHeap) Less(i, j int) bool { return h.IntSlice[i] > h.IntSlice[j] } // 实现大顶堆
-func (h *maxHeap) Push(x interface{}) {
-	h.IntSlice = append(h.IntSlice, x.(int))
+type Heap struct {
+	data []int
+	// less(a, b) 为 true 表示 a 的优先级高于 b
+	less func(a, b int) bool
 }
-func (h *maxHeap) Pop() interface{} {
-	old := h.IntSlice
-	n := len(old)
-	x := old[n-1]
-	h.IntSlice = old[0 : n-1]
-	return x
+
+func NewHeap(isMinHeap bool) HeapInterface {
+	less := func(a, b int) bool {
+		if isMinHeap {
+			return a < b
+		}
+		return a > b
+	}
+
+	return &Heap{
+		data: make([]int, 0),
+		less: less,
+	}
+}
+
+func (h *Heap) Len() int {
+	return len(h.data)
+}
+
+func (h *Heap) swap(i, j int) {
+	h.data[i], h.data[j] = h.data[j], h.data[i]
+}
+
+func (h *Heap) UpAdjust(index int) {
+	for index > 0 {
+		parentIndex := (index - 1) / 2
+		if !h.less(h.data[index], h.data[parentIndex]) {
+			break
+		}
+		h.swap(index, parentIndex)
+		index = parentIndex
+	}
+}
+
+func (h *Heap) DownAdjust(index int) {
+	n := h.Len()
+
+	for {
+		leftChild, rightChild := 2*index+1, 2*index+2
+		bestIndex := index
+		if leftChild < n && h.less(h.data[leftChild], h.data[bestIndex]) {
+			bestIndex = leftChild
+		}
+		if rightChild < n && h.less(h.data[rightChild], h.data[bestIndex]) {
+			bestIndex = rightChild
+		}
+		if bestIndex == index {
+			return
+		}
+		h.swap(index, bestIndex)
+		index = bestIndex
+	}
+}
+
+func (h *Heap) Push(value int) {
+	h.data = append(h.data, value)
+	h.UpAdjust(h.Len() - 1)
+}
+
+func (h *Heap) Pop() int {
+	if h.Len() == 0 {
+		return -1
+	}
+
+	top := h.data[0]
+	h.swap(0, h.Len()-1)
+	h.data = h.data[:h.Len()-1]
+	h.DownAdjust(0)
+	return top
+}
+
+func (h *Heap) Peek() int {
+	if h.Len() == 0 {
+		return -1
+	}
+	return h.data[0]
 }
 
 type MedianFinder struct {
-	sHeap *minHeap // 小顶堆，存储大于等于中位数的数
-	bHeap *maxHeap // 大顶堆，存储小于中位数的数
+	minHeap, maxHeap HeapInterface
 }
 
 func Constructor() MedianFinder {
 	return MedianFinder{
-		sHeap: &minHeap{},
-		bHeap: &maxHeap{},
+		minHeap: NewHeap(true),
+		maxHeap: NewHeap(false),
 	}
 }
 
 func (this *MedianFinder) AddNum(num int) {
-	// 小顶堆用于存放大于等于中位数的数，而大顶堆用来存放小于中位数的数
-	if this.sHeap.Len() == 0 || num >= this.sHeap.IntSlice[0] {
-		heap.Push(this.sHeap, num)
+	if this.minHeap.Len() == 0 || num >= this.minHeap.Peek() {
+		this.minHeap.Push(num)
 	} else {
-		heap.Push(this.bHeap, num)
+		this.maxHeap.Push(num)
 	}
 
-	// 调整两个堆中元素的数量，使得小顶堆的元素个数不超过大顶堆的元素个数加1
-	if this.sHeap.Len() > this.bHeap.Len()+1 {
-		heap.Push(this.bHeap, heap.Pop(this.sHeap).(int))
-	} else if this.bHeap.Len() > this.sHeap.Len() {
-		heap.Push(this.sHeap, heap.Pop(this.bHeap).(int))
+	if this.minHeap.Len() > this.maxHeap.Len()+1 {
+		this.maxHeap.Push(this.minHeap.Pop())
+	} else if this.maxHeap.Len() > this.minHeap.Len() {
+		this.minHeap.Push(this.maxHeap.Pop())
 	}
 }
 
 func (this *MedianFinder) FindMedian() float64 {
-	if (this.bHeap.Len()+this.sHeap.Len())%2 == 0 {
-		return float64(this.bHeap.IntSlice[0]+this.sHeap.IntSlice[0]) / 2.0
+	if (this.minHeap.Len()+this.maxHeap.Len())%2 == 0 {
+		return float64(this.minHeap.Peek()+this.maxHeap.Peek()) / 2.0
 	}
-	return float64(this.sHeap.IntSlice[0])
+	return float64(this.minHeap.Peek())
 }
-
 func main() {
 	medianFinder := Constructor()
 	medianFinder.AddNum(1)

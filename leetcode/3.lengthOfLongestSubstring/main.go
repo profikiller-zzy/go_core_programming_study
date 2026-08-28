@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 
-func lengthOfLongestSubstring(s string) int {
+func lengthOfLongestSubstring1(s string) int {
 	var curCharSet = make(map[byte]int)
 	maxArea := 0
 	left, right := 0, 0
@@ -29,7 +29,27 @@ func lengthOfLongestSubstring(s string) int {
 	return maxArea
 }
 
+func lengthOfLongestSubstring(s string) int {
+	window := make(map[rune]struct{})
+	var left, result int
+	for right := 0; right < len(s); right++ {
+		ch := rune(s[right])
+		if _, ok := window[ch]; !ok {
+			window[ch] = struct{}{}
+			if result < len(window) {
+				result = len(window)
+			}
+		} else {
+			for ; left < right && ch != rune(s[left]); left++ {
+				delete(window, rune(s[left]))
+			}
+			left++
+		}
+	}
+	return result
+}
+
 func main() {
-	s := "abcabcbb"
+	s := "aabaab!bb"
 	fmt.Println(lengthOfLongestSubstring(s))
 }

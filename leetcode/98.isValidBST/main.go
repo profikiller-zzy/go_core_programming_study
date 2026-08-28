@@ -1,5 +1,7 @@
 package main
 
+import "math"
+
 // TreeNode Definition for a binary tree node.
 type TreeNode struct {
 	Val   int
@@ -7,58 +9,22 @@ type TreeNode struct {
 	Right *TreeNode
 }
 
-type Stack struct {
-	Nodes []*TreeNode
-	size  int
-}
-
-func newStack() *Stack {
-	return &Stack{
-		Nodes: make([]*TreeNode, 0),
-		size:  0,
-	}
-}
-
-func (stack *Stack) push(node *TreeNode) {
-	stack.Nodes = append(stack.Nodes, node)
-	stack.size++
-}
-
-func (stack *Stack) pop() *TreeNode {
-	if stack.size == 0 {
-		return nil
-	}
-	node := stack.Nodes[stack.size-1]
-	stack.Nodes = stack.Nodes[:stack.size-1]
-	stack.size--
-	return node
-}
-
 func isValidBST1(root *TreeNode) bool {
-	if root == nil {
-		return true
-	}
-
-	var (
-		prev int
-		cur  int
-	)
-	prev = -1 << 63 // Initialize to the minimum value of int
-	stack := newStack()
-	curNode := root
-	for curNode != nil || stack.size > 0 {
-		for curNode != nil {
-			stack.push(curNode)
-			curNode = curNode.Left
+	stack := make([]*TreeNode, 0)
+	prev := math.MinInt64
+	cur := root
+	for len(stack) > 0 || cur != nil {
+		for cur != nil {
+			stack = append(stack, cur)
+			cur = cur.Left
 		}
-		curNode = stack.pop()
-		cur = curNode.Val
-		if cur <= prev {
+		cur = stack[len(stack)-1]
+		stack = stack[:len(stack)-1]
+		if cur.Val <= prev {
 			return false
-		} else {
-			prev = cur
 		}
-		curNode = curNode.Right
+		prev = cur.Val
+		cur = cur.Right
 	}
 	return true
 }

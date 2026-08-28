@@ -44,6 +44,9 @@ func largestRectangleArea(heights []int) int {
 	leftStack[0], rightStack[0] = -1, n
 	left, right := make([]int, n), make([]int, n)
 	for i := 0; i < n; i++ {
+		// 维护一个单调递增栈
+		// 如果当前柱子 height[index] <= 栈顶柱子的高度，说明栈顶柱子不可能是 index 左边第一个比它矮的
+		// 而且对于后面的柱子来说，栈顶柱子也被 index 挡住了（因为 index 更矮或相等且更靠右），所以弹出栈顶
 		for len(leftStack) > 1 && heights[i] <= heights[leftStack[len(leftStack)-1]] {
 			leftStack = leftStack[:len(leftStack)-1]
 		}

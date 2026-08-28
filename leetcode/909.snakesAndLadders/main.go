@@ -1,11 +1,12 @@
 package main
 
+type state struct {
+	value int // 当前位置
+	step  int // 走到当前位置使用了多少步数
+}
+
 func snakesAndLadders(board [][]int) int {
 	n := len(board)
-	type state struct {
-		value int // 当前位置
-		step  int // 走到当前位置使用了多少步数
-	}
 	queue := []state{
 		{
 			value: 1,
