@@ -1,14 +1,22 @@
 package main
 
 func isSubsequence(s string, t string) bool {
-	var i, j int
-	for i < len(s) && j < len(t) {
-		if s[i] == t[j] {
-			i++
-		}
-		j++
+	if len(s) == 0 {
+		return true
 	}
-	return i == len(s)
+	var sIndex, tIndex int
+	for tIndex < len(t) {
+		if s[sIndex] == t[tIndex] {
+			sIndex++
+			tIndex++
+			if sIndex == len(s) {
+				return true
+			}
+			continue
+		}
+		tIndex++
+	}
+	return false
 }
 
 func main() {

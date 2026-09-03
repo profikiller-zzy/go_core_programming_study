@@ -27,21 +27,13 @@ func fullJustify(words []string, maxWidth int) []string {
 		lines = append(lines, curLine)
 	}
 	res := make([]string, len(lines))
-	for index = 0; index <= len(lines)-2; index++ { // 最后一行不需要处理
-		res[index] = lineToString(lines[index])
+	for index = 0; index < len(lines); index++ { // 最后一行不需要处理
+		if index < len(lines)-1 {
+			res[index] = lineToString(lines[index])
+		} else {
+			res[index] = lastLineToString(lines[index])
+		}
 	}
-	var lastLineString strings.Builder
-	lastLine := lines[len(lines)-1]
-	lastLineString.WriteString(lastLine.words[0])
-	for index = 1; index < lastLine.wordsCount; index++ {
-		lastLineString.WriteString(" ")
-		lastLine.space--
-		lastLineString.WriteString(lastLine.words[index])
-	}
-	if lastLine.space > 0 {
-		lastLineString.WriteString(strings.Repeat(" ", lastLine.space))
-	}
-	res[len(lines)-1] = lastLineString.String()
 	return res
 }
 
@@ -68,6 +60,19 @@ func lineToString(l line) string {
 			res.WriteString(strings.Repeat(" ", basic))
 		}
 		res.WriteString(l.words[index])
+	}
+	return res.String()
+}
+
+func lastLineToString(l line) string {
+	var res strings.Builder
+	res.WriteString(l.words[0])
+	for index := 1; index < len(l.words); index++ {
+		res.WriteString(" " + l.words[index])
+		l.space--
+	}
+	if l.space > 0 {
+		res.WriteString(strings.Repeat(" ", l.space))
 	}
 	return res.String()
 }

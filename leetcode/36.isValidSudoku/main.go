@@ -21,11 +21,10 @@ func isValidSudoku(board [][]byte) bool {
 				num, _ := strconv.Atoi(string(board[row][column]))
 				if boxHash[row/3*3+column/3][num-1] || rowHash[row][num-1] || columnHash[column][num-1] {
 					return false
-				} else {
-					boxHash[row/3*3+column/3][num-1] = true
-					rowHash[row][num-1] = true
-					columnHash[column][num-1] = true
 				}
+				boxHash[row/3*3+column/3][num-1] = true
+				rowHash[row][num-1] = true
+				columnHash[column][num-1] = true
 			}
 		}
 	}
